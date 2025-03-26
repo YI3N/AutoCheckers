@@ -181,12 +181,10 @@ public class GameManager : MonoBehaviour
 
     private void PrepairBoard(Player player)
     {
-        player.AttackStatistics.Clear();
-        player.DefenceStatistics.Clear();
-
         for (int i = 0; i < player.HeroesOnBoard.Count; i++)
         {
             Hero hero = player.HeroesOnBoard[i].GetComponent<Hero>();
+            hero.ClearStatistic();
 
             if (player.HeroesOnBoard.Count <= player.Level)
             {

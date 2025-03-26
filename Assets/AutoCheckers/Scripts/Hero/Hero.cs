@@ -15,7 +15,7 @@ public class Hero : MonoBehaviour
     [SerializeField]
     private Slider manaBar;
     [SerializeField]
-    private GameObject upgradeUI;
+    private Stars upgradeUI;
     [SerializeField]
     private GameObject silenceIcon;
 
@@ -255,6 +255,12 @@ public class Hero : MonoBehaviour
         onAttackEvents.Remove(func);
     }
 
+    public void ClearStatistic()
+    {
+        AttackStatistics = 0;
+        DefenceStatistics = 0;
+    }
+
     public void GetSilenced(int seconds)
     {
         if (!isSilent)
@@ -472,13 +478,7 @@ public class Hero : MonoBehaviour
         Upgrades++;
         CurrentHealth = MaxHealth;
 
-        int i = 0;
-        foreach (Transform child in upgradeUI.transform)
-        {
-            if (i <= Upgrades)
-                child.gameObject.SetActive(true);
-            i++;
-        }
+        upgradeUI.TurnOnStars(Upgrades);
 
         CheckHeroUpgrade();
     }

@@ -9,9 +9,9 @@ public class HeroCard : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField]
-    private TMP_Text classText;
+    private AbilityIcon heroClassSection;
     [SerializeField]
-    private TMP_Text raceText;
+    private AbilityIcon raceSection;
     [SerializeField]
     private TMP_Text costText;
     [SerializeField]
@@ -35,9 +35,12 @@ public class HeroCard : MonoBehaviour
 
     void Start()
     {
-        classText.text = heroPrefab.GetComponent<Hero>().HeroClass.ToString();
-        raceText.text = heroPrefab.GetComponent<Hero>().Race.ToString();
         costText.text = heroPrefab.GetComponent<Hero>().Cost.ToString();
+        HeroClass heroClass = heroPrefab.GetComponent<Hero>().HeroClass;
+        Race race = heroPrefab.GetComponent<Hero>().Race;
+
+        heroClassSection.SetAbility(heroClass, heroClass.ToString());
+        raceSection.SetAbility(race, race.ToString());
 
         buyButton.onClick.AddListener(TryToHumanPurchase);
     }

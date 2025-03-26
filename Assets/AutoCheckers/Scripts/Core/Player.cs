@@ -14,8 +14,6 @@ public class Player
     public BoardCell[] Bench { get; private set; } = new BoardCell[8];
     public Dictionary<string, int> ClassHeroes { get;  set; } = new Dictionary<string, int>();
     public Dictionary<string, int> RaceHeroes { get;  set; } = new Dictionary<string, int>();
-    public Dictionary<string, int> AttackStatistics { get; private set; } = new Dictionary<string, int>();
-    public Dictionary<string, int> DefenceStatistics { get; private set; } = new Dictionary<string, int>();
 
     public GameTag Tag { get; private set; }
     public int FightHeroes { get; private set; } = 0;
@@ -32,6 +30,8 @@ public class Player
     public int WinStreak { get; private set; } = 0;
     public int Wins { get; private set; } = 0;
     public int Losses { get; private set; } = 0;
+    public int AttackStatistics { get; private set; } = 0;
+    public int DefenceStatistics { get; private set; } = 0;
 
     public Player(GameTag tag)
     {
@@ -176,18 +176,13 @@ public class Player
             WinStreak = 0;
         }
 
-        foreach (GameObject heroObj in HeroesOnBoard)
+        foreach (GameObject hero in HeroesOnBoard)
         {
-            Hero hero = heroObj.GetComponent<Hero>();
-            string heroName = hero.name.Split('(')[0];
-
-            AttackStatistics.AddValue(heroName, hero.AttackStatistics);
-            DefenceStatistics.AddValue(heroName, hero.DefenceStatistics);
+            AttackStatistics += hero.GetComponent<Hero>().AttackStatistics;
+            DefenceStatistics += hero.GetComponent<Hero>().DefenceStatistics;
         }
 
-        AttackStatistics = AttackStatistics.OrderByDescending(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value); ;
-        DefenceStatistics = DefenceStatistics.OrderByDescending(pair => pair.Value).ToDictionary(pair => pair.Key, pair => pair.Value); ;
-
+        UIManager.instance.SetStatistics(this);
         UIManager.instance.UpdatePlayerUI(Tag);
     }
 

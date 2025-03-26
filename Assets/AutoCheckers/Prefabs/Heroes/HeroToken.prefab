@@ -966,6 +966,7 @@ GameObject:
   - component: {fileID: 6781252670678708431}
   - component: {fileID: 3680773712214680729}
   - component: {fileID: 1114355880085146285}
+  - component: {fileID: 3991573710036635700}
   m_Layer: 5
   m_Name: Upgrades
   m_TagString: Untagged
@@ -1058,6 +1059,18 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &3991573710036635700
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8465895856407732517}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8476916cb9317894e81276de2d92d9f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8698677656870772387
 GameObject:
   m_ObjectHideFlags: 0
@@ -1242,7 +1255,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   healthBar: {fileID: 2992942503926454148}
   manaBar: {fileID: 1569070864449041885}
-  upgradeUI: {fileID: 8465895856407732517}
+  upgradeUI: {fileID: 3991573710036635700}
   silenceIcon: {fileID: 7793056115494899394}
   id: 0
   cost: 0

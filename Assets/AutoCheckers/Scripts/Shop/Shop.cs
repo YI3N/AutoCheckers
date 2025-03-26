@@ -143,13 +143,9 @@ public class Shop : MonoBehaviour
         List<GameObject> shop, List<GameObject> renders) GetShopData(GameTag tag)
     {
         if (tag == GameTag.Human)
-        {
             return (GameManager.instance.Human, gameObject, humanRenderPoints, humanMaterials, humanShop, humanRenders);
-        }
         else
-        {
             return (GameManager.instance.AI, AIContent, AIRenderPoints, AIMaterials, AIShop, AIRenders);
-        }
     }
 
     public void GenerateShop(GameTag tag)
