@@ -62,7 +62,11 @@ public class HeroCard : MonoBehaviour
         Player player = (tag == GameTag.Human) ? GameManager.instance.Human : GameManager.instance.AI;
 
         player.Purchase(cost);
-        Board.instance.SetHero(Instantiate(heroPrefab), tag);
+
+        GameObject hero = Instantiate(heroPrefab);
+        hero.name = heroPrefab.name;
+
+        Board.instance.SetHero(hero, tag);
         Shop.instance.RemoveFromShop(tag, this.gameObject, heroRender);
     }
 

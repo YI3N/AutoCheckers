@@ -27,6 +27,8 @@ public class Shop : MonoBehaviour
     private List<GameObject> humanRenderPoints;
     [SerializeField]
     private List<RenderTexture> humanMaterials;
+    [SerializeField]
+    private ShopChances humanChances;
 
     [Space(10)]
     [SerializeField]
@@ -35,6 +37,8 @@ public class Shop : MonoBehaviour
     private List<GameObject> AIRenderPoints;
     [SerializeField]
     private List<RenderTexture> AIMaterials;
+    [SerializeField]
+    private ShopChances aiChances;
 
     private int rerollCost = 2;
     private int expCost = 4;
@@ -44,17 +48,18 @@ public class Shop : MonoBehaviour
     private List<GameObject> AIShop = new List<GameObject>();
     private List<GameObject> AIRenders = new List<GameObject>();
 
-    private float[,] chances = {
-        {1,     0,      0,      0,      0 },
-        {.7f,   .3f,    0,      0,      0},
-        {.6f,   .35f,   .05f,   0,      0},
-        {.5f,   .35f,   .15f,   0,      0},
-        {.4f,   .35f,   .23f,   .02f,   0},
-        {.33f,  .3f,    .3f,    .07f,   0},
-        {.3f,   .3f,    .3f,    .1f,    0},
-        {.24f,  .3f,    .3f,    .15f,   .01f},
-        {.22f,  .25f,   .3f,    .2f,    .03f},
-        {.19f,  .25f,   .25f,   .25f,   .06f}
+    private readonly List<float[]> chances = new()
+    {
+        new float[] { 1,    0,      0,      0,      0 },
+        new float[] { .7f,  .3f,    0,      0,      0 },
+        new float[] { .6f,  .35f,   .05f,   0,      0 },
+        new float[] { .5f,  .35f,   .15f,   0,      0 },
+        new float[] { .4f,  .35f,   .23f,   .02f,   0 },
+        new float[] { .33f, .3f,    .3f,    .07f,   0 },
+        new float[] { .3f,  .3f,    .3f,    .1f,    0 },
+        new float[] { .24f, .3f,    .3f,    .15f,   .01f },
+        new float[] { .22f, .25f,   .3f,    .2f,    .03f },
+        new float[] { .19f, .25f,   .25f,   .25f,   .06f }
     };
 
     void Awake()
@@ -70,12 +75,16 @@ public class Shop : MonoBehaviour
     {
         GenerateShop(GameTag.Human);
         GenerateShop(GameTag.AI);
+        UpdateChances(GameManager.instance.Human);
+        UpdateChances(GameManager.instance.AI);
     }
 
-    // Update is called once per frame
-    void Update()
+    public void UpdateChances(Player player)
     {
-        
+        if (player.Tag == GameTag.Human)
+            humanChances.SetChances(chances[player.Level]);
+        else if (player.Tag == GameTag.AI)
+            aiChances.SetChances(chances[player.Level]);
     }
 
     private void AddHeroToPull(int id, int upgrades, int rarity)
@@ -117,13 +126,13 @@ public class Shop : MonoBehaviour
     {
         float chance = Random.Range(0f, 1f);
 
-        if (chance <= chances[playerLevel, 4] && legendaryCards.Count != 0)
+        if (chance <= chances[playerLevel][4] && legendaryCards.Count != 0)
             return legendaryCards;
-        else if (chance <= chances[playerLevel, 3] && mythicCards.Count != 0)
+        else if (chance <= chances[playerLevel][3] && mythicCards.Count != 0)
             return mythicCards;
-        else if (chance <= chances[playerLevel, 2] && rareCards.Count != 0)
+        else if (chance <= chances[playerLevel][2] && rareCards.Count != 0)
             return rareCards;
-        else if (chance <= chances[playerLevel, 1] && uncommonCards.Count != 0)
+        else if (chance <= chances[playerLevel][1] && uncommonCards.Count != 0)
             return uncommonCards;
         else if (commonCards.Count != 0)
             return commonCards;

@@ -151,6 +151,7 @@ public class Player
             {
                 Exp -= MaxExp;
                 Level += 1;
+                Shop.instance.UpdateChances(this);
             }
             else
             {
