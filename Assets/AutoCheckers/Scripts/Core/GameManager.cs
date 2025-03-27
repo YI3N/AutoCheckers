@@ -217,7 +217,7 @@ public class GameManager : MonoBehaviour
     {
         IsPlaying = true;
 
-        Human.RaceHeroes["Human"] = 3;
+        Human.RaceHeroes[Race.Human] = 3;
 
         PrepairBoard(Human);
         PrepairBoard(AI);

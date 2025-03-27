@@ -74,7 +74,7 @@ namespace AutoCheckers
             }
         }
 
-        public static void AddValue(this Dictionary<string, int> dict, string key, int value)
+        public static void AddValue<TKey>(this Dictionary<TKey, int> dict, TKey key, int value) where TKey : System.Enum
         {
             if (dict.ContainsKey(key))
                 dict[key] += value;

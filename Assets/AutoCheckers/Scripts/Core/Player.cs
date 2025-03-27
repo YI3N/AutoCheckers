@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using AutoCheckers;
 using System.Linq;
+using System;
 
 public class Player
 {
@@ -12,8 +13,8 @@ public class Player
     public List<GameObject> HeroesOnBoard { get; private set; } = new List<GameObject>();
     public List<GameObject> HeroesOnBench { get; private set; } = new List<GameObject>();
     public BoardCell[] Bench { get; private set; } = new BoardCell[8];
-    public Dictionary<string, int> ClassHeroes { get;  set; } = new Dictionary<string, int>();
-    public Dictionary<string, int> RaceHeroes { get;  set; } = new Dictionary<string, int>();
+    public Dictionary<HeroClass, int> ClassHeroes { get;  set; } = new Dictionary<HeroClass, int>();
+    public Dictionary<Race, int> RaceHeroes { get;  set; } = new Dictionary<Race, int>();
 
     public GameTag Tag { get; private set; }
     public int FightHeroes { get; private set; } = 0;
@@ -43,8 +44,8 @@ public class Player
         foreach (GameObject piece in HeroesOnBoard)
         {
             Hero hero = piece.GetComponent<Hero>();
-            hero.ClassAbility.ActivateAbility(ClassHeroes[hero.HeroClass.ToString()]);
-            hero.RaceAbility.ActivateAbility(RaceHeroes[hero.Race.ToString()]);
+            hero.ClassAbility.ActivateAbility(ClassHeroes[hero.HeroClass]);
+            hero.RaceAbility.ActivateAbility(RaceHeroes[hero.Race]);
         }
     }
 
@@ -53,8 +54,8 @@ public class Player
         foreach (GameObject piece in HeroesOnBoard)
         {
             Hero hero = piece.GetComponent<Hero>();
-            hero.ClassAbility.DeactivateAbility(ClassHeroes[hero.HeroClass.ToString()]);
-            hero.RaceAbility.DeactivateAbility(RaceHeroes[hero.Race.ToString()]);
+            hero.ClassAbility.DeactivateAbility(ClassHeroes[hero.HeroClass]);
+            hero.RaceAbility.DeactivateAbility(RaceHeroes[hero.Race]);
         }
     }
 
@@ -71,9 +72,9 @@ public class Player
 
         if (!isDuplicate)
         {
-            ClassHeroes.AddValue(hero.GetComponent<Hero>().HeroClass.ToString(), 1);
-            RaceHeroes.AddValue(hero.GetComponent<Hero>().Race.ToString(), 1);
-            UIManager.instance.UpdatePlayerUI(Tag);
+            ClassHeroes.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
+            RaceHeroes.AddValue(hero.GetComponent<Hero>().Race, 1);
+            UIManager.instance.UpdatePlayerUI(this);
         }
     }
 
@@ -86,9 +87,9 @@ public class Player
 
         if (!isDuplicate)
         {
-            ClassHeroes[hero.GetComponent<Hero>().HeroClass.ToString()] += 1;
-            RaceHeroes[hero.GetComponent<Hero>().Race.ToString()] += 1;
-            UIManager.instance.UpdatePlayerUI(Tag);
+            ClassHeroes[hero.GetComponent<Hero>().HeroClass] += 1;
+            RaceHeroes[hero.GetComponent<Hero>().Race] += 1;
+            UIManager.instance.UpdatePlayerUI(this);
         }
     }
 
@@ -101,9 +102,9 @@ public class Player
 
         if (!isDuplicate)
         {
-            ClassHeroes[hero.GetComponent<Hero>().HeroClass.ToString()] -= 1;
-            RaceHeroes[hero.GetComponent<Hero>().Race.ToString()] -= 1;
-            UIManager.instance.UpdatePlayerUI(Tag);
+            ClassHeroes[hero.GetComponent<Hero>().HeroClass] -= 1;
+            RaceHeroes[hero.GetComponent<Hero>().Race] -= 1;
+            UIManager.instance.UpdatePlayerUI(this);
         }
     }
 
@@ -131,14 +132,14 @@ public class Player
     public void Purchase(int money)
     {
         Money -= money;
-        UIManager.instance.UpdatePlayerUI(Tag);
+        UIManager.instance.UpdatePlayerUI(this);
     }
 
     public void GainMoney(int money)
     {
         Money += money;
         Money = Mathf.Clamp(Money, 0, 100);
-        UIManager.instance.UpdatePlayerUI(Tag);
+        UIManager.instance.UpdatePlayerUI(this);
     }
 
     public void GainEXP(int exp)
@@ -156,7 +157,7 @@ public class Player
                 break;
             }
         }
-        UIManager.instance.UpdatePlayerUI(Tag);
+        UIManager.instance.UpdatePlayerUI(this);
     }
 
     public void CalculateStatistic(GameTag roundResult)
@@ -183,7 +184,7 @@ public class Player
         }
 
         UIManager.instance.SetStatistics(this);
-        UIManager.instance.UpdatePlayerUI(Tag);
+        UIManager.instance.UpdatePlayerUI(this);
     }
 
     public int CalculateDamage()
@@ -206,6 +207,6 @@ public class Player
         {
             //Show Results
         }
-        UIManager.instance.UpdatePlayerUI(Tag);
+        UIManager.instance.UpdatePlayerUI(this);
     }
 }
