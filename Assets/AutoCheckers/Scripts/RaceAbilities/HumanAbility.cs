@@ -4,12 +4,14 @@ using UnityEngine;
 
 public class HumanAbility : MonoBehaviour, IAbility
 {
-    private const int lvlThreshold = 3;
-    private const int silenceTime = 4;
+    private readonly int silenceTime = 4;
     private readonly List<int> silenceChance = new List<int>() {0, 10, 20, 30};
 
     private Hero hero;
     private int currentLvL;
+
+    public static readonly int lvlThreshold = 3;
+    public static readonly int maxLvl = 9;
 
     void Awake()
     {
@@ -37,5 +39,14 @@ public class HumanAbility : MonoBehaviour, IAbility
     {
         if (silenceChance[currentLvL] >= Random.Range(0, 100))
             hero.TargetEnemy.GetSilenced(silenceTime);
+    }
+
+    public int GetLvlThreshold()
+    {
+        return lvlThreshold;
+    }
+    public int GetMaxLvl()
+    {
+        return maxLvl;
     }
 }

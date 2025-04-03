@@ -52,6 +52,8 @@ public class Hero : MonoBehaviour
     private int attackRange;
     [SerializeField]
     private int moveDistance = 2;
+    [SerializeField]
+    private int combineThreshold = 3;
 
     public int ID
     {
@@ -104,6 +106,10 @@ public class Hero : MonoBehaviour
     public int Level
     {
         get { return Cost + Upgrades * 2; }
+    }
+    public int CombineThreshold
+    {
+        get { return combineThreshold; }
     }
 
     public IAbility ClassAbility { get; private set; }
@@ -446,7 +452,7 @@ public class Hero : MonoBehaviour
 
     public void CheckHeroUpgrade()
     {
-        if (Upgrades < 3)
+        if (Upgrades < CombineThreshold)
         {
             List<GameObject> heroes = Owner.HeroesOnBoard.Concat(Owner.HeroesOnBench).ToList();
             List<GameObject> upgradeHeroes = new List<GameObject>();
@@ -456,12 +462,12 @@ public class Hero : MonoBehaviour
                 if (ID == hero.GetComponent<Hero>().ID && Upgrades == hero.GetComponent<Hero>().Upgrades)
                 {
                     upgradeHeroes.Add(hero);
-                    if (upgradeHeroes.Count >= 3)
+                    if (upgradeHeroes.Count >= CombineThreshold)
                         break;
                 }
             }
 
-            if (upgradeHeroes.Count >= 3)
+            if (upgradeHeroes.Count >= CombineThreshold)
             {
                 upgradeHeroes[0].GetComponent<Hero>().Combine();
                 DestroyImmediate(upgradeHeroes[1]);

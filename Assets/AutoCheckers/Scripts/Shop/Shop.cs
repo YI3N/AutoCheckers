@@ -1,5 +1,6 @@
 using AutoCheckers;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,7 +42,8 @@ public class Shop : MonoBehaviour
     private ShopChances aiChances;
 
     private int rerollCost = 2;
-    private int expCost = 4;
+    private int expCost = 5;
+    private int expGain = 4;
 
     private List<GameObject> humanShop = new List<GameObject>();
     private List<GameObject> humanRenders = new List<GameObject>();
@@ -61,6 +63,12 @@ public class Shop : MonoBehaviour
         new float[] { .22f, .25f,   .3f,    .2f,    .03f },
         new float[] { .19f, .25f,   .25f,   .25f,   .06f }
     };
+
+    private readonly int commonAmount = 45;
+    private readonly int uncommonAmount = 30;
+    private readonly int rareAmount = 25;
+    private readonly int mythicAmount = 15;
+    private readonly int legendaryAmount = 10;
 
     void Awake()
     {
@@ -87,38 +95,28 @@ public class Shop : MonoBehaviour
             aiChances.SetChances(chances[player.Level]);
     }
 
-    private void AddHeroToPull(int id, int upgrades, int rarity)
+    private void AddHeroToPull(Hero hero)
     {
-        List<GameObject> cardList = null;
-        if (rarity == 0)
-            cardList = commonCards;
-        else if (rarity == 1)
-            cardList = uncommonCards;
-        else if (rarity == 2)
-            cardList = rareCards;
-        else if (rarity == 3)
-            cardList = mythicCards;
-        else if (rarity == 4)
-            cardList = legendaryCards;
+        List<GameObject> cardList = GetHeroRarityList(hero.Rarity);
 
         GameObject heroCard = null;
         foreach (GameObject card in allCards)
         {
-            if (card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>().ID == id)
+            if (card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>().ID == hero.ID)
             {
                 heroCard = card;
                 break;
             }
         }
 
-        for (int i = 0; i <= upgrades; i++)
+        for (int i = 0; i <= (int)Mathf.Pow(hero.CombineThreshold, hero.Upgrades); i++)
             cardList.Add(heroCard);
     }
 
     public void SellHero(Hero hero, Player player)
     {
         player.GainMoney(hero.Level);
-        AddHeroToPull(hero.ID, hero.Level, (int)hero.Rarity);
+        AddHeroToPull(hero);
         DestroyImmediate(hero.gameObject);
     }
 
@@ -155,6 +153,29 @@ public class Shop : MonoBehaviour
             return (GameManager.instance.Human, gameObject, humanRenderPoints, humanMaterials, humanShop, humanRenders);
         else
             return (GameManager.instance.AI, AIContent, AIRenderPoints, AIMaterials, AIShop, AIRenders);
+    }
+
+    public List<GameObject> GetCurrentHeroShop(GameTag tag)
+    {
+        List<GameObject> heroes = new List<GameObject>();
+        if (tag == GameTag.Human)
+        {
+            foreach (GameObject card in humanShop)
+            {
+                GameObject piece = card.GetComponent<HeroCard>().HeroPrefab;
+                heroes.Add(piece);
+            }
+        }
+        else
+        {
+            foreach (GameObject card in AIShop)
+            {
+                GameObject piece = card.GetComponent<HeroCard>().HeroPrefab;
+                heroes.Add(piece);
+            }
+        }
+
+        return heroes;
     }
 
     public void GenerateShop(GameTag tag)
@@ -208,9 +229,7 @@ public class Shop : MonoBehaviour
 
         foreach (GameObject card in shop)
         {
-            AddHeroToPull(card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>().ID,
-                card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>().Upgrades,
-                (int)card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>().Rarity);
+            AddHeroToPull(card.GetComponent<HeroCard>().HeroPrefab.GetComponent<Hero>());
             DestroyImmediate(card);
         }
         shop.Clear();
@@ -251,6 +270,27 @@ public class Shop : MonoBehaviour
     {
         var (player, _, _, _, _, _) = GetShopData(tag);
         player.Purchase(expCost);
-        player.GainEXP(expCost);
+        player.GainEXP(expGain);
+    }
+
+    public float GetCurrentRaritySpawnChance(int level, Rarity rarity)
+    {
+        return chances[level][((int)rarity)];
+    }
+
+    public List<GameObject> GetHeroRarityList(Rarity rarity)
+    {
+        if ((int)rarity == 0)
+            return commonCards;
+        else if ((int)rarity == 1)
+            return uncommonCards;
+        else if ((int)rarity == 2)
+            return rareCards;
+        else if ((int)rarity == 3)
+            return mythicCards;
+        else if ((int)rarity == 4)
+            return legendaryCards;
+        else
+            return null;
     }
 }

@@ -5,12 +5,13 @@ using UnityEngine;
 
 public class MageAbility : MonoBehaviour, IAbility
 {
-    public static bool abilityActive = false;
-
-    private const int lvlThreshold = 3;
-    private readonly List<int> magicalResistanceDebuff = new List<int>() {0, -35, -90, -150 };
+    private static bool abilityActive = false;
+    private readonly List<int> magicalResistanceDebuff = new List<int>() {0, -33, -66, -99 };
 
     private Hero hero;
+
+    public static readonly int lvlThreshold = 3;
+    public static readonly int maxLvl = 9;
 
     void Awake()
     {
@@ -43,5 +44,13 @@ public class MageAbility : MonoBehaviour, IAbility
         {
             enemy.GetComponent<Hero>().GainMagicalResistance(debuffValue);
         }
+    }
+    public int GetLvlThreshold()
+    {
+        return lvlThreshold;
+    }
+    public int GetMaxLvl()
+    {
+        return maxLvl;
     }
 }

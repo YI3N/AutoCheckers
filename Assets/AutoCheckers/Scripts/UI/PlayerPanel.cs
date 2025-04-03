@@ -1,4 +1,5 @@
 using AutoCheckers;
+using OpenCover.Framework.Model;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -68,11 +69,18 @@ public class PlayerPanel : MonoBehaviour
             if (ability.Value <= 0)
                 continue;
 
-            int threshold = 3;
-            if (ability.Key.Equals(Race.Orc))
-                threshold = 2;
+            var (threshold, maxLvl) = IExtensions.GetAbilityParameters(ability.Key);
 
-            string amount = ability.Value + "/" + threshold * (1 + ability.Value / threshold);
+            string amount;
+            if (ability.Value < maxLvl)
+            {
+                int progress = 1 + ability.Value / threshold;
+                amount = $"{ability.Value}/{threshold * progress}";
+            }
+            else
+            {
+                amount = $"{ability.Value}/{maxLvl}";
+            }
 
             Enum abilityType = null;
             GameObject abilitiesSection = null;

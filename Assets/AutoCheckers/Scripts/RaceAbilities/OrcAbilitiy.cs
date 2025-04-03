@@ -5,11 +5,12 @@ using UnityEngine;
 public class OrcAbilitiy : MonoBehaviour, IAbility
 {
     private static bool abilityActive = false;
-
-    private const int lvlThreshold = 2;
-    private readonly List<int> hpBoost = new List<int>() {0, 100, 350, 350 };
+    private readonly List<int> hpBoost = new List<int>() {0, 150, 500, 500 };
 
     private Hero hero;
+
+    public static readonly int lvlThreshold = 2;
+    public static readonly int maxLvl = 6;
 
     void Awake()
     {
@@ -21,10 +22,9 @@ public class OrcAbilitiy : MonoBehaviour, IAbility
         if (heroes < lvlThreshold || abilityActive)
             return;
 
-
         abilityActive = true;
         int level = heroes / lvlThreshold;
-        ApplyHpBoost(level);
+        ApplyHpBoost(level, false);
     }
 
     public void DeactivateAbility(int heroes)
@@ -32,30 +32,38 @@ public class OrcAbilitiy : MonoBehaviour, IAbility
         if (heroes < lvlThreshold || !abilityActive)
             return;
 
-
         abilityActive = false;
         int level = heroes / lvlThreshold;
-        ApplyHpBoost(-level);
+        ApplyHpBoost(level, true);
     }
 
-    private void ApplyHpBoost(int level)
+    private void ApplyHpBoost(int level, bool isNegative)
     {
-        int boostValue = hpBoost[level];
+        int boostValue = isNegative ? -hpBoost[level] : hpBoost[level];
         if (level >= 3)
         {
-            foreach (GameObject allyObj in hero.Owner.HeroesOnBoard)
+            foreach (GameObject piece in hero.Owner.HeroesOnBoard)
             {
-                Hero ally = allyObj.GetComponent<Hero>();
+                Hero ally = piece.GetComponent<Hero>();
                 ally.GainMaxHealth(boostValue + (ally.Owner.MaxHealth - ally.Owner.CurrentHealth) * 8);
             }
         }
         else
         {
-            foreach (GameObject allyObj in hero.Owner.HeroesOnBoard)
+            foreach (GameObject piece in hero.Owner.HeroesOnBoard)
             {
-                Hero ally = allyObj.GetComponent<Hero>();
+                Hero ally = piece.GetComponent<Hero>();
                 ally.GainMaxHealth(boostValue);
             }
         }
+    }
+
+    public int GetLvlThreshold()
+    {
+        return lvlThreshold;
+    }
+    public int GetMaxLvl()
+    {
+        return maxLvl;
     }
 }

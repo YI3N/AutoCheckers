@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -61,13 +62,20 @@ namespace AutoCheckers
 
     public static class IExtensions
     {
+        private static readonly Dictionary<Enum, (int, int)> abilityParameters = new Dictionary<Enum, (int, int)> {
+            { Race.Orc, (OrcAbilitiy.lvlThreshold, OrcAbilitiy.maxLvl) },
+            { Race.Human, (HumanAbility.lvlThreshold, HumanAbility.maxLvl) },
+            { HeroClass.Warrior, (WarriorAbility.lvlThreshold, WarriorAbility.maxLvl) },
+            { HeroClass.Mage, (MageAbility.lvlThreshold, MageAbility.maxLvl) }
+        };
+
         public static void Shuffle<T>(this IList<T> ts)
         {
             var count = ts.Count;
             var last = count - 1;
             for (var i = 0; i < last; ++i)
             {
-                var r = Random.Range(i, count);
+                var r = UnityEngine.Random.Range(i, count);
                 var tmp = ts[i];
                 ts[i] = ts[r];
                 ts[r] = tmp;
@@ -80,6 +88,14 @@ namespace AutoCheckers
                 dict[key] += value;
             else
                 dict.Add(key, value);
+        }
+
+        public static (int, int) GetAbilityParameters(Enum ability)
+        {
+            if (abilityParameters.TryGetValue(ability, out var parameters))
+                return parameters;
+            else
+                throw new ArgumentException("Unsupported ability type: " + ability);
         }
     }
 }

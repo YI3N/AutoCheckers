@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using AutoCheckers;
 using System.Linq;
 using System;
+using UnityEngine.Analytics;
 
 public class Player
 {
@@ -25,7 +26,7 @@ public class Player
     public int Exp { get; private set; } = 0;
     public int MaxExp
     {
-        get {  return exps[Level]; }
+        get {  return exps[Mathf.Clamp(Level, 1, exps.Length - 1)]; }
     }
     public int Money { get; private set; } = 100;
     public int WinStreak { get; private set; } = 0;
