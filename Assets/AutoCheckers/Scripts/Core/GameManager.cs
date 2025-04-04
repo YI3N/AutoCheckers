@@ -151,17 +151,9 @@ public class GameManager : MonoBehaviour
         UIManager.instance.HideSellPrice();
     }
 
-    // тут тест
     public void BeginGame()
     {
-        GameObject dummy = Instantiate(testEnemy);
-        Board.instance.SetTestHero(dummy, 4, 3, GameTag.AI);
 
-        GameObject dummy2 = Instantiate(testEnemy);
-        Board.instance.SetTestHero(dummy2, 4, 4, GameTag.AI);
-
-        GameObject dummy3 = Instantiate(testEnemy);
-        Board.instance.SetTestHero(dummy3, 4, 5, GameTag.AI);
     }
 
     private IEnumerator RoundTick()
@@ -196,7 +188,7 @@ public class GameManager : MonoBehaviour
                 fightHeroes.Add(hero);
                 player.AddFightHero();
             }
-            else if (Human.HeroesOnBench.Count < player.Bench.Length)
+            else if (player.HeroesOnBench.Count < player.Bench.Length)
             {
                 foreach (BoardCell cell in player.Bench)
                 {
@@ -221,8 +213,6 @@ public class GameManager : MonoBehaviour
     public void StartRound()
     {
         IsPlaying = true;
-
-        Human.RaceHeroes[Race.Human] = 3;
 
         PrepairBoard(Human);
         PrepairBoard(AI);
@@ -263,9 +253,7 @@ public class GameManager : MonoBehaviour
         Round++;
         UIManager.instance.EndRound();
 
-        analytics.SetDangerPlayers();
-        analytics.SetBattlePriorities();
-        analytics.SetBuyPriorities();
+        UpdateShops();
     }
 
     private GameTag DetermineRoundResult()
@@ -336,5 +324,11 @@ public class GameManager : MonoBehaviour
     {
         Human.GainEXP(1);
         AI.GainEXP(1);
+    }
+    
+    private void UpdateShops()
+    {
+        Shop.instance.RerollShop(GameTag.Human);
+        Shop.instance.RerollShop(GameTag.AI);
     }
 }

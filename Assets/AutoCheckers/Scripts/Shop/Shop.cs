@@ -30,6 +30,8 @@ public class Shop : MonoBehaviour
     private List<RenderTexture> humanMaterials;
     [SerializeField]
     private ShopChances humanChances;
+    [SerializeField]
+    private LockButton lockButton;
 
     [Space(10)]
     [SerializeField]
@@ -49,6 +51,9 @@ public class Shop : MonoBehaviour
     private List<GameObject> humanRenders = new List<GameObject>();
     private List<GameObject> AIShop = new List<GameObject>();
     private List<GameObject> AIRenders = new List<GameObject>();
+
+    public bool HumanLocked { get; private set; } = false;
+    public bool AILocked { get; private set; } = false;
 
     private readonly List<float[]> chances = new()
     {
@@ -77,8 +82,6 @@ public class Shop : MonoBehaviour
         else if (instance == this)
             Destroy(this);
     }
-
-    // Start is called before the first frame update
     void Start()
     {
         GenerateShop(GameTag.Human);
@@ -109,7 +112,7 @@ public class Shop : MonoBehaviour
             }
         }
 
-        for (int i = 0; i <= (int)Mathf.Pow(hero.CombineThreshold, hero.Upgrades); i++)
+        for (int i = 0; i < (int)Mathf.Pow(hero.CombineThreshold, hero.Upgrades); i++)
             cardList.Add(heroCard);
     }
 
@@ -146,13 +149,13 @@ public class Shop : MonoBehaviour
             return null;
     }
 
-    private (Player player, GameObject content, List<GameObject> renderPoints, List<RenderTexture> materials, 
-        List<GameObject> shop, List<GameObject> renders) GetShopData(GameTag tag)
+    private (Player player, GameObject content, List<GameObject> shop, bool locked,
+        List<GameObject> renderPoints, List<GameObject> renders, List<RenderTexture> materials) GetShopData(GameTag tag)
     {
         if (tag == GameTag.Human)
-            return (GameManager.instance.Human, gameObject, humanRenderPoints, humanMaterials, humanShop, humanRenders);
+            return (GameManager.instance.Human, gameObject, humanShop, HumanLocked, humanRenderPoints, humanRenders, humanMaterials);
         else
-            return (GameManager.instance.AI, AIContent, AIRenderPoints, AIMaterials, AIShop, AIRenders);
+            return (GameManager.instance.AI, AIContent, AIShop, AILocked, AIRenderPoints, AIRenders, AIMaterials);
     }
 
     public List<GameObject> GetCurrentHeroShop(GameTag tag)
@@ -178,15 +181,35 @@ public class Shop : MonoBehaviour
         return heroes;
     }
 
-    public void GenerateShop(GameTag tag)
+    public void LockShop(GameTag tag)
     {
-        var (player, content, renderPoints, materials, shop, renders) = GetShopData(tag);
+        if (tag == GameTag.Human)
+        {
+            HumanLocked = !HumanLocked;
+            lockButton.ChangeButton();
+        }
+        else
+            AILocked = !AILocked;
+    }
+
+    private void GenerateShop(GameTag tag)
+    {
+        var (player, content, shop, locked, renderPoints, renders, materials) = GetShopData(tag);
+
+        if (locked)
+        {
+            locked = false;
+            lockButton.ChangeButton();
+            return;
+        }
 
         for (int i = 0; i < renderPoints.Count; i++)
         {
             if (renderPoints[i].transform.childCount < 2)
             {
                 List<GameObject> randomList = GetRandomHeroList(player.Level);
+                if (randomList == null)
+                    break;
 
                 int randomNumber = Random.Range(0, randomList.Count);
 
@@ -214,7 +237,7 @@ public class Shop : MonoBehaviour
 
     public void RemoveFromShop(GameTag tag, GameObject card, GameObject render)
     {
-        var (_, _, _, _, shop, renders) = GetShopData(tag);
+        var (_, _, shop, _, _, renders, _) = GetShopData(tag);
 
         shop.Remove(card);
         renders.Remove(render);
@@ -225,7 +248,7 @@ public class Shop : MonoBehaviour
 
     private void ClearShop(GameTag tag)
     {
-        var (_, _, _, _, shop, renders) = GetShopData(tag);
+        var (_, _, shop, _, _, renders, _) = GetShopData(tag);
 
         foreach (GameObject card in shop)
         {
@@ -251,7 +274,10 @@ public class Shop : MonoBehaviour
 
     public void RerollShop(GameTag tag)
     {
-        var (player, _, _, _, _, _) = GetShopData(tag);
+        var (player, _, _, locked, _, _, _) = GetShopData(tag);
+
+        if (locked)
+            return;
 
         player.Purchase(rerollCost);
         ClearShop(tag);
@@ -268,7 +294,7 @@ public class Shop : MonoBehaviour
 
     public void BuyEXP(GameTag tag)
     {
-        var (player, _, _, _, _, _) = GetShopData(tag);
+        var (player, _, _, _, _, _, _) = GetShopData(tag);
         player.Purchase(expCost);
         player.GainEXP(expGain);
     }

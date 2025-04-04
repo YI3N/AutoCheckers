@@ -54,6 +54,15 @@ public class Analytics
         }
     }
 
+    public float CalculateMAD()
+    {
+        float[] values = DangerPlayers.Values.ToArray();
+        float mean = values.Average();
+        float mad = values.Select(x => Mathf.Abs(x - mean)).Average();
+
+        return mad;
+    }
+
     public void SetBattlePriorities()
     {
         HeroBattlePriorities.Clear();
