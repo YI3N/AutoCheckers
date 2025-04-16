@@ -20,6 +20,7 @@ public class GameManager : MonoBehaviour
     private List<Hero> fightHeroes = new List<Hero>();
 
     private Management management;
+    private Management managementH;
 
     public Player Human { get; private set; } = new Player(GameTag.Human);
     public Player AI { get; private set; } = new Player(GameTag.AI);
@@ -50,6 +51,7 @@ public class GameManager : MonoBehaviour
         }
 
         management = new Management(AI);
+        managementH = new Management(Human);
     }
 
     // Update is called once per frame
@@ -253,6 +255,7 @@ public class GameManager : MonoBehaviour
         UpdateShops();
 
         management.PredictBattleOutcome();
+        //managementH.PredictBattleOutcome();
     }
 
     private GameTag DetermineRoundResult()

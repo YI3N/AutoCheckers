@@ -129,8 +129,8 @@ public class Tactics
 
     private void SetBattleOrder(Dictionary<string, float> battlePriority)
     {
-        Vector2Int target = GetMainDangerPoint();
-        Vector2Int neighbor = GetMostDangerousNeighbor(target);
+        Vector2 target = GetMainDangerPoint();
+        Vector2 neighbor = GetMostDangerousNeighbor(target);
 
         foreach (KeyValuePair<string, float> kvp in battlePriority)
         {
@@ -144,15 +144,15 @@ public class Tactics
         }
     }
 
-    private void SetMeleePosition(Hero hero, Vector2Int target, Vector2Int neighbor)
+    private void SetMeleePosition(Hero hero, Vector2 target, Vector2 neighbor)
     {
-        List<Vector2Int> freeCells = GetFreeCellsForMelee();
+        List<Vector2> freeCells = GetFreeCellsForMelee();
 
-        Vector2Int bestCell = freeCells[0];
+        Vector2 bestCell = freeCells[0];
 
         int bestDist = Mathf.FloorToInt(Vector2.Distance(bestCell, target));
 
-        foreach (Vector2Int cell in freeCells)
+        foreach (Vector2 cell in freeCells)
         {
             int dist = Mathf.FloorToInt(Vector2.Distance(cell, target));
             if (dist < bestDist)
@@ -170,17 +170,19 @@ public class Tactics
             }
         }
 
-        hero.SetStartCell(Board.instance.GetCell(bestCell.x, bestCell.y));
+        hero.SetStartCell(Board.instance.GetCell((int)bestCell.x, (int)bestCell.y));
     }
 
-    private void SetRangedPosition(Hero hero, Vector2Int target, Vector2Int neighbor)
+    private void SetRangedPosition(Hero hero, Vector2 target, Vector2 neighbor)
     {
-        List<Vector2Int> freeCells = GetFreeCellsForRanged();
+        List<Vector2> freeCells = GetFreeCellsForRanged()
+            .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
+            .ToList();
 
-        Vector2Int bestCell = freeCells[0];
+        Vector2 bestCell = freeCells[0];
         float bestDist = Mathf.FloorToInt(Vector2.Distance(bestCell, target));
 
-        foreach (Vector2Int cell in freeCells)
+        foreach (Vector2 cell in freeCells)
         {
             float dist = Mathf.FloorToInt(Vector2.Distance(cell, target));
             if (dist > bestDist && dist <= hero.AttackRange)
@@ -198,41 +200,51 @@ public class Tactics
             }
         }
 
-        hero.SetStartCell(Board.instance.GetCell(bestCell.x, bestCell.y));
+        hero.SetStartCell(Board.instance.GetCell((int)bestCell.x, (int)bestCell.y));
     }
 
-    private List<Vector2Int> GetFreeCellsForMelee()
+    private List<Vector2> GetFreeCellsForMelee()
     {
         int row = owner.Tag == GameTag.Human ? 3 : 4;
-        List<Vector2Int> cells = new();
+        List<Vector2> cells = new();
 
         for (int col = 0; col < 8; col++)
         {
             if (!Board.instance.GetCell(row, col).IsOccupied)
-                cells.Add(new Vector2Int(row, col));
+                cells.Add(new Vector2(row, col));
+
+            if (cells.Count == 0 && col == 7)
+            {
+                col = 0;
+                row += owner.Tag == GameTag.Human ? -1 : 1;
+            }
         }
 
         return cells;
     }
 
-    private List<Vector2Int> GetFreeCellsForRanged()
+    private List<Vector2> GetFreeCellsForRanged()
     {
-        int row = owner.Tag == GameTag.Human ? 0 : 7;
-        List<Vector2Int> cells = new();
+        int lastRow = owner.Tag == GameTag.Human ? 0 : 5;
+        int endRow = owner.Tag == GameTag.Human ? 2 : 7;
+        List<Vector2> cells = new();
 
-        for (int col = 0; col < 8; col++)
+        for (int row = lastRow; row <= endRow; row++)
         {
-            if (!Board.instance.GetCell(row, col).IsOccupied)
-                cells.Add(new Vector2Int(row, col));
+            for (int col = 0; col < 8; col++)
+            {
+                if (!Board.instance.GetCell(row, col).IsOccupied)
+                    cells.Add(new Vector2(row, col));
+            }
         }
 
         return cells;
     }
 
-    private Vector2Int GetMainDangerPoint()
+    private Vector2 GetMainDangerPoint()
     {
         int maxDanger = int.MinValue;
-        List<Vector2Int> candidates = new();
+        List<Vector2> candidates = new();
 
         for (int row = (owner.Tag == GameTag.Human ? 4 : 0); row < (owner.Tag == GameTag.Human ? 7 : 3); row++)
         {
@@ -243,16 +255,16 @@ public class Tactics
                 {
                     maxDanger = danger;
                     candidates.Clear();
-                    candidates.Add(new Vector2Int(row, col));
+                    candidates.Add(new Vector2(row, col));
                 }
                 else if (danger == maxDanger)
                 {
-                    candidates.Add(new Vector2Int(row, col));
+                    candidates.Add(new Vector2(row, col));
                 }
             }
         }
 
-        Vector2Int target = candidates[0];
+        Vector2 target = candidates[0];
         int regionDanger = CountRegionDanger(target);
 
         foreach (var point in candidates)
@@ -268,19 +280,19 @@ public class Tactics
         return target;
     }
 
-    private int CountRegionDanger(Vector2Int point)
+    private int CountRegionDanger(Vector2 point)
     {
         int regionDanger = 0;
 
         for (int i = -1; i <= 1; i++)
         {
-            int row = point.x + i;
+            int row = (int)point.x + i;
             if (row < 0 || row > 7)
                 continue;
 
             for (int j = -1; j <= 1; j++)
             {
-                int col = point.y + j;
+                int col = (int)point.y + j;
                 if (col < 0 || col > 7)
                     continue;
 
@@ -291,20 +303,20 @@ public class Tactics
         return regionDanger;
     }
 
-    private Vector2Int GetMostDangerousNeighbor(Vector2Int point)
+    private Vector2 GetMostDangerousNeighbor(Vector2 point)
     {
-        Vector2Int mostDangerous = point;
+        Vector2 mostDangerous = point;
         int maxDanger = -1;
 
         for (int i = -1; i <= 1; i++)
         {
-            int row = point.x + i;
+            int row = (int)point.x + i;
             if (row < 0 || row > 7)
                 continue;
 
             for (int j = -1; j <= 1; j++)
             {
-                int col = point.y + j;
+                int col = (int)point.y + j;
                 if (col < 0 || col > 7)
                     continue;
 
@@ -312,7 +324,7 @@ public class Tactics
                 if (danger > maxDanger)
                 {
                     maxDanger = danger;
-                    mostDangerous = new Vector2Int(row, col);
+                    mostDangerous = new Vector2(row, col);
                 }
             }
         }

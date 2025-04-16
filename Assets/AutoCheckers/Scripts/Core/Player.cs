@@ -112,10 +112,17 @@ public class Player
 
     public void MoveHeroToBench(GameObject hero)
     {
+        bool isDuplicate = IsHeroOnBench(hero);
+        if (!isDuplicate)
+        {
+            BenchClasses.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
+            BenchRaces.AddValue(hero.GetComponent<Hero>().Race, 1);
+        }
+
         HeroesOnBench.Add(hero);
         HeroesOnBoard.Remove(hero);
 
-        bool isDuplicate = IsHeroOnBoard(hero);
+       isDuplicate = IsHeroOnBoard(hero);
 
         if (!isDuplicate)
         {
@@ -123,13 +130,6 @@ public class Player
             RaceHeroes[hero.GetComponent<Hero>().Race] -= 1;
 
             UIManager.instance.UpdatePlayerUI(this);
-        }
-
-        isDuplicate = IsHeroOnBench(hero);
-        if (!isDuplicate)
-        {
-            BenchClasses.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
-            BenchRaces.AddValue(hero.GetComponent<Hero>().Race, 1);
         }
     }
 
