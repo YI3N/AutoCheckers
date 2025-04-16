@@ -17,6 +17,9 @@ public class Player
     public Dictionary<HeroClass, int> ClassHeroes { get;  set; } = new Dictionary<HeroClass, int>();
     public Dictionary<Race, int> RaceHeroes { get;  set; } = new Dictionary<Race, int>();
 
+    public Dictionary<HeroClass, int> BenchClasses { get; set; } = new Dictionary<HeroClass, int>();
+    public Dictionary<Race, int> BenchRaces { get; set; } = new Dictionary<Race, int>();
+
     public GameTag Tag { get; private set; }
     public int FightHeroes { get; private set; } = 0;
 
@@ -28,7 +31,7 @@ public class Player
     {
         get {  return exps[Mathf.Clamp(Level, 1, exps.Length - 1)]; }
     }
-    public int Money { get; private set; } = 100;
+    public int Money { get; private set; } = 5;
     public int WinStreak { get; private set; } = 0;
     public int Wins { get; private set; } = 0;
     public int Losses { get; private set; } = 0;
@@ -65,6 +68,11 @@ public class Player
         return HeroesOnBoard.Any(piece => hero.GetComponent<Hero>().ID == piece.GetComponent<Hero>().ID);
     }
 
+    public bool IsHeroOnBench(GameObject hero)
+    {
+        return HeroesOnBench.Any(piece => hero.GetComponent<Hero>().ID == piece.GetComponent<Hero>().ID);
+    }
+
     public void SetHeroToBoard(GameObject hero)
     {
         bool isDuplicate = IsHeroOnBoard(hero);
@@ -90,7 +98,15 @@ public class Player
         {
             ClassHeroes[hero.GetComponent<Hero>().HeroClass] += 1;
             RaceHeroes[hero.GetComponent<Hero>().Race] += 1;
+
             UIManager.instance.UpdatePlayerUI(this);
+        }
+
+        isDuplicate = IsHeroOnBench(hero);
+        if (!isDuplicate)
+        {
+            BenchClasses[hero.GetComponent<Hero>().HeroClass] -= 1;
+            BenchRaces[hero.GetComponent<Hero>().Race] -= 1;
         }
     }
 
@@ -105,7 +121,15 @@ public class Player
         {
             ClassHeroes[hero.GetComponent<Hero>().HeroClass] -= 1;
             RaceHeroes[hero.GetComponent<Hero>().Race] -= 1;
+
             UIManager.instance.UpdatePlayerUI(this);
+        }
+
+        isDuplicate = IsHeroOnBench(hero);
+        if (!isDuplicate)
+        {
+            BenchClasses.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
+            BenchRaces.AddValue(hero.GetComponent<Hero>().Race, 1);
         }
     }
 

@@ -43,8 +43,8 @@ public class Shop : MonoBehaviour
     [SerializeField]
     private ShopChances aiChances;
 
-    private int rerollCost = 2;
-    private int expCost = 5;
+    public int RerollCost { get; private set; } = 2;
+    public int EXPCost { get; private set; } = 5;
     private int expGain = 4;
 
     private List<GameObject> humanShop = new List<GameObject>();
@@ -81,13 +81,15 @@ public class Shop : MonoBehaviour
             instance = this;
         else if (instance == this)
             Destroy(this);
-    }
-    void Start()
-    {
+
         GenerateShop(GameTag.Human);
         GenerateShop(GameTag.AI);
         UpdateChances(GameManager.instance.Human);
         UpdateChances(GameManager.instance.AI);
+    }
+    void Start()
+    {
+
     }
 
     public void UpdateChances(Player player)
@@ -120,7 +122,7 @@ public class Shop : MonoBehaviour
     {
         player.GainMoney(hero.Level);
         AddHeroToPull(hero);
-        DestroyImmediate(hero.gameObject);
+        Destroy(hero.gameObject);
     }
 
     private List<GameObject> GetRandomHeroList(int playerLevel)
@@ -179,6 +181,14 @@ public class Shop : MonoBehaviour
         }
 
         return heroes;
+    }
+
+    public List<GameObject> GetCurrentCardShop(GameTag tag)
+    {
+        if (tag == GameTag.Human)
+            return humanShop;
+        else
+            return AIShop;
     }
 
     public void LockShop(GameTag tag)
@@ -266,27 +276,29 @@ public class Shop : MonoBehaviour
 
     public void TryToRerollHumanShop()
     {
-        if (GameManager.instance.Human.Money >= rerollCost)
-            RerollShop(GameTag.Human);
+        if (GameManager.instance.Human.Money >= RerollCost)
+            RerollShop(GameTag.Human, true);
         else
             UIManager.instance.OnRerollFailed();
     }
 
-    public void RerollShop(GameTag tag)
+    public void RerollShop(GameTag tag, bool isPaid)
     {
         var (player, _, _, locked, _, _, _) = GetShopData(tag);
 
         if (locked)
             return;
 
-        player.Purchase(rerollCost);
+        if (isPaid)
+            player.Purchase(RerollCost);
+
         ClearShop(tag);
         GenerateShop(tag);
     }
 
     public void TryToBuyEXPHumanShop()
     {
-        if (GameManager.instance.Human.Money >= expCost)
+        if (GameManager.instance.Human.Money >= EXPCost)
             BuyEXP(GameTag.Human);
         else
             UIManager.instance.OnEXPFailed();
@@ -295,7 +307,7 @@ public class Shop : MonoBehaviour
     public void BuyEXP(GameTag tag)
     {
         var (player, _, _, _, _, _, _) = GetShopData(tag);
-        player.Purchase(expCost);
+        player.Purchase(EXPCost);
         player.GainEXP(expGain);
     }
 

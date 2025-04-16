@@ -111,6 +111,10 @@ public class Hero : MonoBehaviour
     {
         get { return combineThreshold; }
     }
+    public int AttackRange
+    {
+        get { return attackRange; }
+    }
 
     public IAbility ClassAbility { get; private set; }
     public IAbility RaceAbility { get; private set; }
@@ -318,7 +322,7 @@ public class Hero : MonoBehaviour
     private bool CanAttackTarget()
     {
         return TargetEnemy != null &&
-               Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), TargetEnemy.CurrentCell.GetBoardPosition())) <= attackRange;
+               Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), TargetEnemy.CurrentCell.GetBoardPosition())) <= AttackRange;
     }
 
     private void Attack()
@@ -397,7 +401,7 @@ public class Hero : MonoBehaviour
             float distance = Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), enemy.CurrentCell.GetBoardPosition()));
             if (distance < nearestDistance)
             {
-                possibleMoves = Board.instance.GetAvailableCells(enemy.CurrentCell, CurrentCell, moveDistance, attackRange);
+                possibleMoves = Board.instance.GetAvailableCells(enemy.CurrentCell, CurrentCell, moveDistance, AttackRange);
                 TargetEnemy = enemy;
                 nearestDistance = distance;
             }
@@ -418,13 +422,13 @@ public class Hero : MonoBehaviour
             float attackDistance = Mathf.FloorToInt(Vector2.Distance(possibleMove.GetBoardPosition(), TargetEnemy.CurrentCell.GetBoardPosition()));
             float moveDistance = Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), possibleMove.GetBoardPosition()));
 
-            if (!canAttack && attackDistance <= attackRange)
+            if (!canAttack && attackDistance <= AttackRange)
             {
                 canAttack = true;
                 bestDistance = Mathf.Infinity;
             }
 
-            if (canAttack && attackDistance <= attackRange && moveDistance < bestDistance)
+            if (canAttack && attackDistance <= AttackRange && moveDistance < bestDistance)
             {
                 bestDistance = moveDistance;
                 bestMove = possibleMove;
@@ -457,11 +461,11 @@ public class Hero : MonoBehaviour
             List<GameObject> heroes = Owner.HeroesOnBoard.Concat(Owner.HeroesOnBench).ToList();
             List<GameObject> upgradeHeroes = new List<GameObject>();
 
-            foreach (GameObject hero in heroes)
+            foreach (GameObject piece in heroes)
             {
-                if (ID == hero.GetComponent<Hero>().ID && Upgrades == hero.GetComponent<Hero>().Upgrades)
+                if (ID == piece.GetComponent<Hero>().ID && Upgrades == piece.GetComponent<Hero>().Upgrades)
                 {
-                    upgradeHeroes.Add(hero);
+                    upgradeHeroes.Add(piece);
                     if (upgradeHeroes.Count >= CombineThreshold)
                         break;
                 }

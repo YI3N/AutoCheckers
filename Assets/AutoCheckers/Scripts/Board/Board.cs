@@ -26,6 +26,11 @@ public class Board : MonoBehaviour
         }
     }
 
+    public BoardCell GetCell(int row, int col)
+    {
+        return boardCells[row, col];
+    }
+
     public void SetHero(GameObject hero, GameTag tag)
     {
         Player player = (tag == GameTag.Human) ? GameManager.instance.Human : GameManager.instance.AI;

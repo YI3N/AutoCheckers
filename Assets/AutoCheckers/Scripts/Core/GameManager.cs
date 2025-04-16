@@ -16,12 +16,10 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private float damageTime = 1;
 
-    public GameObject testEnemy;
-
     private GameObject heroHit;
     private List<Hero> fightHeroes = new List<Hero>();
 
-    public Analytics analytics;
+    private Management management;
 
     public Player Human { get; private set; } = new Player(GameTag.Human);
     public Player AI { get; private set; } = new Player(GameTag.AI);
@@ -51,7 +49,7 @@ public class GameManager : MonoBehaviour
             AI.Bench[cell.GetComponent<BoardCell>().Row] = cell.GetComponent<BoardCell>();
         }
 
-        analytics = new Analytics(Human);
+        management = new Management(AI);
     }
 
     // Update is called once per frame
@@ -153,7 +151,7 @@ public class GameManager : MonoBehaviour
 
     public void BeginGame()
     {
-
+        management.PredictBattleOutcome();
     }
 
     private IEnumerator RoundTick()
@@ -209,7 +207,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // тут тест
     public void StartRound()
     {
         IsPlaying = true;
@@ -254,6 +251,8 @@ public class GameManager : MonoBehaviour
         UIManager.instance.EndRound();
 
         UpdateShops();
+
+        management.PredictBattleOutcome();
     }
 
     private GameTag DetermineRoundResult()
@@ -328,7 +327,7 @@ public class GameManager : MonoBehaviour
     
     private void UpdateShops()
     {
-        Shop.instance.RerollShop(GameTag.Human);
-        Shop.instance.RerollShop(GameTag.AI);
+        Shop.instance.RerollShop(GameTag.Human, false);
+        Shop.instance.RerollShop(GameTag.AI, false);
     }
 }
