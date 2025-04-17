@@ -5,12 +5,12 @@ using UnityEngine;
 public class OrcAbilitiy : MonoBehaviour, IAbility
 {
     private static bool abilityActive = false;
-    private readonly List<int> hpBoost = new List<int>() {0, 150, 500, 500 };
+    private readonly List<int> hpBoost = new List<int>() {0, 150};
 
     private Hero hero;
 
     public static readonly int lvlThreshold = 2;
-    public static readonly int maxLvl = 6;
+    public static readonly int maxLvl = 2;
 
     void Awake()
     {
@@ -40,22 +40,13 @@ public class OrcAbilitiy : MonoBehaviour, IAbility
     private void ApplyHpBoost(int level, bool isNegative)
     {
         int boostValue = isNegative ? -hpBoost[level] : hpBoost[level];
-        if (level >= 3)
+
+        foreach (GameObject piece in hero.Owner.HeroesOnBoard)
         {
-            foreach (GameObject piece in hero.Owner.HeroesOnBoard)
-            {
-                Hero ally = piece.GetComponent<Hero>();
-                ally.GainMaxHealth(boostValue + (ally.Owner.MaxHealth - ally.Owner.CurrentHealth) * 8);
-            }
+            Hero ally = piece.GetComponent<Hero>();
+            ally.GainMaxHealth(boostValue);
         }
-        else
-        {
-            foreach (GameObject piece in hero.Owner.HeroesOnBoard)
-            {
-                Hero ally = piece.GetComponent<Hero>();
-                ally.GainMaxHealth(boostValue);
-            }
-        }
+
     }
 
     public int GetLvlThreshold()

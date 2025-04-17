@@ -82,6 +82,10 @@ public class Hero : MonoBehaviour
         get { return health[Upgrades] + bonusHealth; }
     }
     public int CurrentHealth { get; private set; }
+    public int HealthRegeneration
+    {
+        get { return healthRegeneration + bonusHealthRegeneration; }
+    }
     public int MaxMana
     {
         get { return mana; }
@@ -89,7 +93,7 @@ public class Hero : MonoBehaviour
     public int CurrentMana { get; private set; }
     public int Damage
     {
-        get { return Random.Range(minDamage[Upgrades], maxDamage[Upgrades]); }
+        get { return Random.Range(minDamage[Upgrades], maxDamage[Upgrades]) + bonusDamage; }
     }
     public int Armor
     {
@@ -128,17 +132,19 @@ public class Hero : MonoBehaviour
     public int AttackStatistics { get; private set; }
     public int DefenceStatistics { get; private set; }
 
+    public int DamageDealt { get; private set; } = 0;
+    private int damageTook = 0;
+
     private ISpell spell;
     private List<Action> onAttackEvents = new List<Action>();
     private List<Action> onHitEvents = new List<Action>();
 
     private int bonusHealth = 0;
+    private int bonusHealthRegeneration = 0;
+    private int bonusDamage = 0;
     private int bonusArmor = 0;
     private int bonusMagicalResistance = 0;
     private bool isSilent = false;
-
-    private int damageDealt = 0;
-    private int damageTook = 0;
 
     public void SetFriendsAndFoes(GameTag tag)
     {
@@ -167,23 +173,19 @@ public class Hero : MonoBehaviour
         SnapToCell(StartCell);
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-
-    }
-
     public void ResetHero()
     {
         CurrentCell.Deoccupy();
         CurrentCell = StartCell;
         CurrentCell.Occupy(this);
 
-        damageDealt = 0;
+        DamageDealt = 0;
         damageTook = 0;
 
         bonusArmor = 0;
         bonusHealth = 0;
+        bonusHealthRegeneration = 0;
+        bonusDamage = 0;
         bonusMagicalResistance = 0;
 
         isSilent = false;
@@ -237,6 +239,19 @@ public class Hero : MonoBehaviour
         healthBar.value = CurrentHealth / (float)MaxHealth;
     }
 
+    public void GainHealth(int health)
+    {
+        CurrentHealth += health;
+        CurrentHealth = Mathf.Clamp(CurrentHealth, 0, MaxHealth);
+
+        healthBar.value = CurrentHealth / (float)MaxHealth;
+    }
+
+    public void GainHealthRegeneration(int healthRegeneration)
+    {
+        bonusHealthRegeneration += healthRegeneration;
+    }
+
     public void GainMana(int mana)
     {
         CurrentMana += Mathf.Clamp(mana, 0, 50) / 5;
@@ -248,6 +263,11 @@ public class Hero : MonoBehaviour
     public void GainArmor(int armor)
     {
         bonusArmor += armor;
+    }
+
+    public void GainDamage(int damage)
+    {
+        bonusDamage += damage;
     }
 
     public void GainMagicalResistance(int magicalResistance)
@@ -295,7 +315,7 @@ public class Hero : MonoBehaviour
 
     public void TakeAction()
     {
-        CurrentHealth += healthRegeneration;
+        CurrentHealth += HealthRegeneration;
         CurrentMana += manaRegeneration;
 
         spell.PassiveSpell();
@@ -327,10 +347,10 @@ public class Hero : MonoBehaviour
 
     private void Attack()
     {
-        damageDealt = TargetEnemy.OnHit(Damage, GameTag.Physical);
-        AttackStatistics += damageDealt;
+        DamageDealt = TargetEnemy.OnHit(Damage, GameTag.Physical);
+        AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(damageDealt, 0, 10));
+        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
 
         TriggerOnAttackEvents();
     }

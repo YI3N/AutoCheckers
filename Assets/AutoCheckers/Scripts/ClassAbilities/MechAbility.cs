@@ -1,16 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
-public class WarriorAbility : MonoBehaviour, IAbility
+public class MechAbility : MonoBehaviour, IAbility
 {
-    private readonly List<int> armor = new List<int>() { 0, 6, 14};
+    private readonly List<int> healthRegeneration = new List<int>() { 0, 25 };
 
     private Hero hero;
 
-    public static readonly int lvlThreshold = 3;
-    public static readonly int maxLvl = 6;
+    public static readonly int lvlThreshold = 2;
+    public static readonly int maxLvl = 4;
 
     void Awake()
     {
@@ -24,7 +23,7 @@ public class WarriorAbility : MonoBehaviour, IAbility
 
         int level = heroes / lvlThreshold;
 
-        hero.GainArmor(armor[level]);
+        hero.GainHealthRegeneration(healthRegeneration[level]);
     }
 
     public void DeactivateAbility(int heroes)
@@ -34,17 +33,7 @@ public class WarriorAbility : MonoBehaviour, IAbility
 
         int level = heroes / lvlThreshold;
 
-        hero.GainArmor(-armor[level]);
-    }
-
-    private void ApplyArmorBoost(bool isNegative)
-    {
-        int boostValue = isNegative ? -armor[1] : armor[1];
-        foreach (GameObject piece in hero.Owner.HeroesOnBoard)
-        {
-            Hero ally = piece.GetComponent<Hero>();
-            ally.GainArmor(boostValue);
-        }
+        hero.GainHealthRegeneration(-healthRegeneration[level]);
     }
 
     public int GetLvlThreshold()
