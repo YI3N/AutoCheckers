@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: 621061271359789166, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 48ddba40956a104458a17580cb491018, type: 2}
+      objectReference: {fileID: 2100000, guid: da8d707f9fef2de4380ad5da2ab37802, type: 2}
     - target: {fileID: 1307199796831871589, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -78,11 +78,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: id
-      value: 15
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: cost
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: mana
@@ -102,7 +102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: rarity
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: opponent
@@ -223,9 +223,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22064c42314c18d4a9b74abe27422c1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  range: 3
-  manaRegeneration: 080000000e00000014000000
-  cooldown: 2
 --- !u!114 &4329092569240232294
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -238,8 +235,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3bc8eb023e18c1e4280a8d9ffb2c644f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lvlThreshold: 3
-  magicalResistanceDebuff: ddffffffa6ffffff6affffff
 --- !u!114 &-797849477948673719
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -252,6 +247,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7366b7dad794e24f83c04b554db0f46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lvlThreshold: 3
-  silenceTime: 4
-  silenceChance: 14000000280000003c000000

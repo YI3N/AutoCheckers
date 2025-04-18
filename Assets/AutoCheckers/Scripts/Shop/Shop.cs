@@ -12,16 +12,11 @@ public class Shop : MonoBehaviour
     [Header("Герои")]
     [SerializeField]
     private List<GameObject> allCards;
-    [SerializeField]
-    private List<GameObject> commonCards;
-    [SerializeField]
-    private List<GameObject> uncommonCards;
-    [SerializeField]
-    private List<GameObject> rareCards;
-    [SerializeField]
-    private List<GameObject> mythicCards;
-    [SerializeField]
-    private List<GameObject> legendaryCards;
+    private List<GameObject> commonCards = new List<GameObject>();
+    private List<GameObject> uncommonCards = new List<GameObject>();
+    private List<GameObject> rareCards = new List<GameObject>();
+    private List<GameObject> mythicCards = new List<GameObject>();
+    private List<GameObject> legendaryCards = new List<GameObject>();
 
     [Space(10)]
     [SerializeField]
@@ -69,11 +64,11 @@ public class Shop : MonoBehaviour
         new float[] { .19f, .25f,   .25f,   .25f,   .06f }
     };
 
-    private readonly int commonAmount = 45;
-    private readonly int uncommonAmount = 30;
-    private readonly int rareAmount = 25;
-    private readonly int mythicAmount = 15;
-    private readonly int legendaryAmount = 10;
+    private readonly int commonAmount = 21;
+    private readonly int uncommonAmount = 18;
+    private readonly int rareAmount = 15;
+    private readonly int mythicAmount = 12;
+    private readonly int legendaryAmount = 9;
 
     void Awake()
     {
@@ -81,6 +76,37 @@ public class Shop : MonoBehaviour
             instance = this;
         else if (instance == this)
             Destroy(this);
+
+        foreach (GameObject cardGO in allCards)
+        {
+            HeroCard card = cardGO.GetComponent<HeroCard>();
+            List<GameObject> cardList = GetHeroRarityList(card.HeroPrefab.GetComponent<Hero>().Rarity);
+
+            int max = 0;
+            switch (card.HeroPrefab.GetComponent<Hero>().Rarity)
+            {
+                case Rarity.Common:
+                    max = commonAmount;
+                    break;
+                case Rarity.Uncommon:
+                    max = uncommonAmount;
+                    break;
+                case Rarity.Rare:
+                    max = rareAmount;
+                    break;
+                case Rarity.Mythic:
+                    max = mythicAmount;
+                    break;
+                case Rarity.Legendary:
+                    max = legendaryAmount;
+                    break;
+            }
+
+            for (int i = 0; i < max; i++)
+            {
+                cardList.Add(cardGO);
+            }
+        }
 
         GenerateShop(GameTag.Human);
         GenerateShop(GameTag.AI);

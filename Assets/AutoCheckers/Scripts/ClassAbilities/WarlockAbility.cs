@@ -1,16 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class WarlockAbility : MonoBehaviour, IAbility
 {
+    public static readonly int maxLvl = 2;
+    public static readonly int lvlThreshold = 2;
     private readonly List<int> lifesteal = new List<int>() { 0, 10 };
 
     private Hero hero;
     private int currentLvL;
-
-    public static readonly int lvlThreshold = 2;
-    public static readonly int maxLvl = 2;
 
     void Awake()
     {
@@ -26,13 +26,9 @@ public class WarlockAbility : MonoBehaviour, IAbility
         hero.GainOnAttackEvent(RestoreHealth);
     }
 
-    public void DeactivateAbility(int heroes)
+    public void DeactivateAbility()
     {
-        if (heroes < lvlThreshold)
-            return;
-
-        currentLvL = heroes / lvlThreshold;
-        hero.RemoveOnAttackEvent(RestoreHealth);
+        return;
     }
 
     private void RestoreHealth()

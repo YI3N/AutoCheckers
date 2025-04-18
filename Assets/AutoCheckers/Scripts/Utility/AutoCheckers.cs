@@ -63,10 +63,20 @@ namespace AutoCheckers
     public static class IExtensions
     {
         private static readonly Dictionary<Enum, (int, int)> abilityParameters = new Dictionary<Enum, (int, int)> {
-            { Race.Orc, (OrcAbilitiy.lvlThreshold, OrcAbilitiy.maxLvl) },
+            { Race.Beast, (BeastAbility.lvlThreshold, BeastAbility.maxLvl) },
+            { Race.Dwarf, (DwarfAbility.lvlThreshold, DwarfAbility.maxLvl) },
+            { Race.Goblin, (GoblinAbility.lvlThreshold, GoblinAbility.maxLvl) },
             { Race.Human, (HumanAbility.lvlThreshold, HumanAbility.maxLvl) },
-            { HeroClass.Warrior, (WarriorAbility.lvlThreshold, WarriorAbility.maxLvl) },
-            { HeroClass.Mage, (MageAbility.lvlThreshold, MageAbility.maxLvl) }
+            { Race.Naga, (NagaAbility.lvlThreshold, NagaAbility.maxLvl) },
+            { Race.Orc, (OrcAbilitiy.lvlThreshold, OrcAbilitiy.maxLvl) },
+            { Race.Troll, (TrollAbility.lvlThreshold, TrollAbility.maxLvl) },
+            { Race.Undead, (UndeadAbility.lvlThreshold, UndeadAbility.maxLvl) },
+            { HeroClass.Hunter, (HunterAbility.lvlThreshold, HunterAbility.maxLvl) },
+            { HeroClass.Knight, (KnightAbility.lvlThreshold, KnightAbility.maxLvl) },
+            { HeroClass.Mage, (MageAbility.lvlThreshold, MageAbility.maxLvl) },
+            { HeroClass.Mech, (MechAbility.lvlThreshold, MechAbility.maxLvl) },
+            { HeroClass.Warlock, (WarlockAbility.lvlThreshold, WarlockAbility.maxLvl) },
+            { HeroClass.Warrior, (WarriorAbility.lvlThreshold, WarriorAbility.maxLvl) },  
         };
 
         public static void Shuffle<T>(this IList<T> ts)

@@ -734,10 +734,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc23b199dad90d04e9acc3c3113652a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orcIcon: {fileID: 2800000, guid: 95e466400f85a994092c0ed283a5502d, type: 3}
+  beastIcon: {fileID: 2800000, guid: b3e3930522c9d7341bf547b8fecbd20a, type: 3}
+  dwarfIcon: {fileID: 2800000, guid: 45ec267195f22194395c22dc6ed6c24b, type: 3}
+  goblinIcon: {fileID: 2800000, guid: debbdac13195bb9469443e5f037d195c, type: 3}
   humanIcon: {fileID: 2800000, guid: c64f16ed27bc6c241be80e6a0ba66ed3, type: 3}
-  warriorIcon: {fileID: 2800000, guid: 1768e1a8e9631a84a841e09b253c0193, type: 3}
+  nagaIcon: {fileID: 2800000, guid: fb773874f1e543e4a85c402545d5ae1a, type: 3}
+  orcIcon: {fileID: 2800000, guid: 95e466400f85a994092c0ed283a5502d, type: 3}
+  trollIcon: {fileID: 2800000, guid: 7e98fc47005d49e47b95e21ea51c4250, type: 3}
+  undeadIcon: {fileID: 2800000, guid: 8e09d66910af53e40833b5e897484d4a, type: 3}
+  hunterIcon: {fileID: 2800000, guid: c728ef1110b25194b898c17a3baf1de1, type: 3}
+  knightIcon: {fileID: 2800000, guid: 5e048731ef6c3d24dada32fa8114ae6d, type: 3}
   mageIcon: {fileID: 2800000, guid: dbbc108a0475662409e1b4aa7a432ff8, type: 3}
+  mechIcon: {fileID: 2800000, guid: fd6ec6d0fddd6494082d0b7d52b1c771, type: 3}
+  warlockIcon: {fileID: 2800000, guid: 3e388f5e2c2cbd846a539468073165d0, type: 3}
+  warriorIcon: {fileID: 2800000, guid: 1768e1a8e9631a84a841e09b253c0193, type: 3}
   abilityIcon: {fileID: 435718109974065971}
   abilityText: {fileID: 2198347886372952556}
 --- !u!1 &5243429513815726942
@@ -960,10 +970,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc23b199dad90d04e9acc3c3113652a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  orcIcon: {fileID: 2800000, guid: 95e466400f85a994092c0ed283a5502d, type: 3}
+  beastIcon: {fileID: 2800000, guid: b3e3930522c9d7341bf547b8fecbd20a, type: 3}
+  dwarfIcon: {fileID: 2800000, guid: 45ec267195f22194395c22dc6ed6c24b, type: 3}
+  goblinIcon: {fileID: 2800000, guid: debbdac13195bb9469443e5f037d195c, type: 3}
   humanIcon: {fileID: 2800000, guid: c64f16ed27bc6c241be80e6a0ba66ed3, type: 3}
-  warriorIcon: {fileID: 2800000, guid: 1768e1a8e9631a84a841e09b253c0193, type: 3}
+  nagaIcon: {fileID: 2800000, guid: fb773874f1e543e4a85c402545d5ae1a, type: 3}
+  orcIcon: {fileID: 2800000, guid: 95e466400f85a994092c0ed283a5502d, type: 3}
+  trollIcon: {fileID: 2800000, guid: 7e98fc47005d49e47b95e21ea51c4250, type: 3}
+  undeadIcon: {fileID: 2800000, guid: 8e09d66910af53e40833b5e897484d4a, type: 3}
+  hunterIcon: {fileID: 2800000, guid: c728ef1110b25194b898c17a3baf1de1, type: 3}
+  knightIcon: {fileID: 2800000, guid: 5e048731ef6c3d24dada32fa8114ae6d, type: 3}
   mageIcon: {fileID: 2800000, guid: dbbc108a0475662409e1b4aa7a432ff8, type: 3}
+  mechIcon: {fileID: 2800000, guid: fd6ec6d0fddd6494082d0b7d52b1c771, type: 3}
+  warlockIcon: {fileID: 2800000, guid: 3e388f5e2c2cbd846a539468073165d0, type: 3}
+  warriorIcon: {fileID: 2800000, guid: 1768e1a8e9631a84a841e09b253c0193, type: 3}
   abilityIcon: {fileID: 4658124298198049221}
   abilityText: {fileID: 6740568891517835566}
 --- !u!1 &8519958858990973058

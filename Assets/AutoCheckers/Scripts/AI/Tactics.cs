@@ -179,6 +179,14 @@ public class Tactics
             .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
             .ToList();
 
+        if (freeCells.Count == 0)
+        {
+            target = new Vector2(owner.Tag == GameTag.Human ? 4 : 3, target.y);
+            GetFreeCellsForRanged()
+            .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
+            .ToList();
+        }
+
         Vector2 bestCell = freeCells[0];
         float bestDist = Mathf.FloorToInt(Vector2.Distance(bestCell, target));
 

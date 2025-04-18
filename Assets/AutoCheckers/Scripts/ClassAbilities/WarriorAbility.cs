@@ -5,12 +5,11 @@ using UnityEngine;
 
 public class WarriorAbility : MonoBehaviour, IAbility
 {
+    public static readonly int maxLvl = 6;
+    public static readonly int lvlThreshold = 3;
     private readonly List<int> armor = new List<int>() { 0, 6, 14};
 
     private Hero hero;
-
-    public static readonly int lvlThreshold = 3;
-    public static readonly int maxLvl = 6;
 
     void Awake()
     {
@@ -27,24 +26,9 @@ public class WarriorAbility : MonoBehaviour, IAbility
         hero.GainArmor(armor[level]);
     }
 
-    public void DeactivateAbility(int heroes)
+    public void DeactivateAbility()
     {
-        if (heroes <= lvlThreshold)
-            return;
-
-        int level = heroes / lvlThreshold;
-
-        hero.GainArmor(-armor[level]);
-    }
-
-    private void ApplyArmorBoost(bool isNegative)
-    {
-        int boostValue = isNegative ? -armor[1] : armor[1];
-        foreach (GameObject piece in hero.Owner.HeroesOnBoard)
-        {
-            Hero ally = piece.GetComponent<Hero>();
-            ally.GainArmor(boostValue);
-        }
+        return;
     }
 
     public int GetLvlThreshold()

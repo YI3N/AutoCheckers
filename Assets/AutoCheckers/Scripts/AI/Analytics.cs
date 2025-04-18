@@ -14,15 +14,15 @@ public class Analytics
 
     private readonly float[] duplicateFactors = new float[] { 0, 0.125f, 0.375f, 0.25f, 0.5f, 0.75f, 0.625f, 0.875f, 1f, 4f };
     private static readonly float[] ability3_6Factors = new float[] { 0, 0.17f, 0.5f, 0.33f, 0.67f, 1f, 0.83f };
-    private static readonly float[] ability3_9Factors = new float[] { 0, 0.11f, 0.33f, 0.22f, 0.44f, 0.67f, 0.56f, 0.78f, 1f, 0.89f };
     private static readonly float[] ability2_4Factors = new float[] { 0, 0.5f, 0.25f, 1f, 0.75f };
-    private static readonly float[] ability2_6Factors = new float[] { 0, 0.33f, 0.17f, 0.67f, 0.5f, 1f, 0.83f };
+    private static readonly float[] ability3_3Factors = new float[] { 0, 0.33f, 1f, 0.67f };
+    private static readonly float[] ability2_2Factors = new float[] { 0, 1f, 0.5f };
 
     private readonly Dictionary<(int, int), float[]> abilityFactors = new Dictionary<(int, int), float[]> {
         {(3, 6), ability3_6Factors},
-        {(3, 9), ability3_9Factors},
+        {(3, 3), ability3_3Factors},
         {(2, 4), ability2_4Factors},
-        {(2, 6), ability2_6Factors}
+        {(2, 2), ability2_2Factors}
     };
 
     public int FreeSpace { get; private set; }

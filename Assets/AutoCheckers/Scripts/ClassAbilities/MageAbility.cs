@@ -5,13 +5,14 @@ using UnityEngine;
 
 public class MageAbility : MonoBehaviour, IAbility
 {
-    private static bool abilityActive = false;
+    public static readonly int maxLvl = 3;
+    public static readonly int lvlThreshold = 3;
     private readonly List<int> magicalResistanceDebuff = new List<int>() {0, -33};
 
-    private Hero hero;
+    private static bool abilityActive = false;
 
-    public static readonly int lvlThreshold = 3;
-    public static readonly int maxLvl = 3;
+    private Hero hero;
+    private int currentLevel;
 
     void Awake()
     {
@@ -24,27 +25,26 @@ public class MageAbility : MonoBehaviour, IAbility
             return;
 
         abilityActive = true;
-        ApplyMagicalResistanceDebuff(heroes);
+        currentLevel = heroes / lvlThreshold;
+        ApplyMagicalResistanceDebuff();
     }
 
-    public void DeactivateAbility(int heroes)
+    public void DeactivateAbility()
     {
-        if (heroes < lvlThreshold || !abilityActive)
-            return;
-
-        abilityActive = false;
-        ApplyMagicalResistanceDebuff(-heroes);
+        if (abilityActive)
+            abilityActive = false;
     }
 
-    private void ApplyMagicalResistanceDebuff(int heroes)
+    private void ApplyMagicalResistanceDebuff()
     {
-        int debuffValue = magicalResistanceDebuff[Mathf.Min(heroes / lvlThreshold, magicalResistanceDebuff.Count - 1)];
+        int debuffValue = magicalResistanceDebuff[currentLevel];
 
         foreach (GameObject enemy in hero.Opponent.HeroesOnBoard)
         {
             enemy.GetComponent<Hero>().GainMagicalResistance(debuffValue);
         }
     }
+
     public int GetLvlThreshold()
     {
         return lvlThreshold;

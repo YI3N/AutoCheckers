@@ -270,8 +270,6 @@ public class GameManager : MonoBehaviour
 
     private void DeactivatePlayers()
     {
-        Human.DeactivateAbilities();
-        AI.DeactivateAbilities();
         Human.ResetFightHeroes();
         AI.ResetFightHeroes();
     }

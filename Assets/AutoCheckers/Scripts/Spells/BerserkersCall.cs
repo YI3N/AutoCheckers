@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class BerserkersCall : MonoBehaviour, ISpell
 {
-    private int range = 1;
-    private List<int> bonusArmor = new List<int>() { 5, 10, 15 };
-    private List<int> duration = new List<int>() { 2, 3, 4 };
-    private int cooldown = 10;
+    private readonly int range = 1;
+    private readonly List<int> bonusArmor = new List<int>() { 5, 10, 15 };
+    private readonly List<int> duration = new List<int>() { 2, 3, 4 };
+    private readonly int cooldown = 10;
 
     private bool isCooldown = false;
     private Hero hero;

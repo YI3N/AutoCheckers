@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class ArcaneAura : MonoBehaviour, ISpell
 {
-    private int range = 3;
-    private List<int> manaRegeneration = new List<int>() { 8, 14, 20 };
-    private int cooldown = 2;
+    private readonly int range = 3;
+    private readonly List<int> manaRegeneration = new List<int>() { 8, 14, 20 };
+    private readonly int cooldown = 2;
 
     private bool isCooldown = false;
     private Hero hero;

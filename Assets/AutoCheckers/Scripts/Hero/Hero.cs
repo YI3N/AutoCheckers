@@ -93,7 +93,7 @@ public class Hero : MonoBehaviour
     public int CurrentMana { get; private set; }
     public int Damage
     {
-        get { return Random.Range(minDamage[Upgrades], maxDamage[Upgrades]) + bonusDamage; }
+        get { return Mathf.FloorToInt(bonusDamageMultiply * (Random.Range(minDamage[Upgrades], maxDamage[Upgrades]) + bonusDamage)); }
     }
     public int Armor
     {
@@ -117,7 +117,7 @@ public class Hero : MonoBehaviour
     }
     public int AttackRange
     {
-        get { return attackRange; }
+        get { return attackRange + bonusAttackRange; }
     }
 
     public IAbility ClassAbility { get; private set; }
@@ -142,8 +142,11 @@ public class Hero : MonoBehaviour
     private int bonusHealth = 0;
     private int bonusHealthRegeneration = 0;
     private int bonusDamage = 0;
+    private float bonusDamageMultiply = 1;
     private int bonusArmor = 0;
     private int bonusMagicalResistance = 0;
+    private int bonusAttackRange = 0;
+    private bool isTargetLowest = false;
     private bool isSilent = false;
 
     public void SetFriendsAndFoes(GameTag tag)
@@ -175,9 +178,9 @@ public class Hero : MonoBehaviour
 
     public void ResetHero()
     {
-        CurrentCell.Deoccupy();
-        CurrentCell = StartCell;
-        CurrentCell.Occupy(this);
+        ClassAbility.DeactivateAbility();
+        RaceAbility.DeactivateAbility();
+        spell.ResetAbility();
 
         DamageDealt = 0;
         damageTook = 0;
@@ -186,13 +189,21 @@ public class Hero : MonoBehaviour
         bonusHealth = 0;
         bonusHealthRegeneration = 0;
         bonusDamage = 0;
+        bonusDamageMultiply = 1;
         bonusMagicalResistance = 0;
+        bonusAttackRange = 0;
+
+        onAttackEvents.Clear();
+        onHitEvents.Clear();
 
         isSilent = false;
         silenceIcon.SetActive(false);
 
-        spell.ResetAbility();
+        isTargetLowest = false;
 
+        CurrentCell.Deoccupy();
+        CurrentCell = StartCell;
+        CurrentCell.Occupy(this);
         TargetEnemy = null;
 
         CurrentHealth = MaxHealth;
@@ -270,19 +281,29 @@ public class Hero : MonoBehaviour
         bonusDamage += damage;
     }
 
+    public void GainDamage(float damage)
+    {
+        bonusDamageMultiply += damage;
+    }
+
     public void GainMagicalResistance(int magicalResistance)
     {
         bonusMagicalResistance += magicalResistance;
     }
 
+    public void GainAttackRange(int range)
+    {
+        bonusAttackRange += range;
+    }
+
+    public void GainTargetLowest()
+    {
+        isTargetLowest = true;
+    }
+
     public void GainOnAttackEvent(Action func)
     {
         onAttackEvents.Add(func);
-    }
-
-    public void RemoveOnAttackEvent(Action func)
-    {
-        onAttackEvents.Remove(func);
     }
 
     public void ClearStatistic()
@@ -318,6 +339,8 @@ public class Hero : MonoBehaviour
         CurrentHealth += HealthRegeneration;
         CurrentMana += manaRegeneration;
 
+        DamageDealt = 0;
+
         spell.PassiveSpell();
 
         if (TargetEnemy != null && !TargetEnemy.gameObject.activeSelf)
@@ -347,12 +370,20 @@ public class Hero : MonoBehaviour
 
     private void Attack()
     {
-        DamageDealt = TargetEnemy.OnHit(Damage, GameTag.Physical);
+        DamageDealt += TargetEnemy.OnHit(Damage, GameTag.Physical);
         AttackStatistics += DamageDealt;
 
         GainMana(Mathf.Clamp(DamageDealt, 0, 10));
 
         TriggerOnAttackEvents();
+    }
+
+    public void MagicalAttack(Hero enemy, int damage)
+    {
+        DamageDealt += enemy.OnHit(damage, GameTag.Magical);
+        AttackStatistics += DamageDealt;
+
+        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
     }
 
     private void TriggerOnAttackEvents()
@@ -408,23 +439,33 @@ public class Hero : MonoBehaviour
         GameObject[] enemies = GameObject.FindGameObjectsWithTag(Opponent.Tag.ToString());
         float nearestDistance = Mathf.Infinity;
         List<BoardCell> possibleMoves = new List<BoardCell>();
+        List<Hero> enemiesInRange = new List<Hero>();
 
         foreach (GameObject enemyObject in enemies)
         {
             Hero enemy = enemyObject.GetComponent<Hero>();
 
-            if (enemy.StartCell.IsBench == true)
-                continue;
-            if (enemy.gameObject.activeSelf == false)
+            if (enemy.StartCell.IsBench || !enemy.gameObject.activeSelf)
                 continue;
 
             float distance = Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), enemy.CurrentCell.GetBoardPosition()));
+
+
+            if (isTargetLowest && distance <= AttackRange)
+                enemiesInRange.Add(enemy);
+
             if (distance < nearestDistance)
             {
                 possibleMoves = Board.instance.GetAvailableCells(enemy.CurrentCell, CurrentCell, moveDistance, AttackRange);
                 TargetEnemy = enemy;
                 nearestDistance = distance;
             }
+        }
+
+        if (isTargetLowest && enemiesInRange.Count > 0)
+        {
+            TargetEnemy = enemiesInRange.OrderBy(e => e.CurrentHealth).First();
+            possibleMoves = Board.instance.GetAvailableCells(TargetEnemy.CurrentCell, CurrentCell, moveDistance, AttackRange);
         }
 
         if (possibleMoves.Count != 0)

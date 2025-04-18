@@ -53,16 +53,6 @@ public class Player
         }
     }
 
-    public void DeactivateAbilities()
-    {
-        foreach (GameObject piece in HeroesOnBoard)
-        {
-            Hero hero = piece.GetComponent<Hero>();
-            hero.ClassAbility.DeactivateAbility(ClassHeroes[hero.HeroClass]);
-            hero.RaceAbility.DeactivateAbility(RaceHeroes[hero.Race]);
-        }
-    }
-
     public bool IsHeroOnBoard(GameObject hero)
     {
         return HeroesOnBoard.Any(piece => hero.GetComponent<Hero>().ID == piece.GetComponent<Hero>().ID);

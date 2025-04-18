@@ -5,18 +5,18 @@ using UnityEngine;
 
 public class KnightAbility : MonoBehaviour, IAbility
 {
+    public static readonly int maxLvl = 2;
+    public static readonly int lvlThreshold = 2;
+
     private readonly int shieldTime = 3;
     private readonly int bonusMagicalResistance = 70;
     private readonly int bonusArmor = 30;
     private readonly List<int> shieldChance = new List<int>() { 0, 30 };
 
+    private bool isCooldown = false;
+
     private Hero hero;
     private int currentLvL;
-
-    public static readonly int lvlThreshold = 2;
-    public static readonly int maxLvl = 2;
-
-    private bool isCooldown = false;
 
     void Awake()
     {
@@ -32,14 +32,10 @@ public class KnightAbility : MonoBehaviour, IAbility
         hero.GainOnAttackEvent(TryToApplyDivineShield);
     }
 
-    public void DeactivateAbility(int heroes)
+    public void DeactivateAbility()
     {
-        if (heroes <= lvlThreshold)
-            return;
-
-        currentLvL = heroes / lvlThreshold;
-
-        hero.RemoveOnAttackEvent(TryToApplyDivineShield);
+        if (isCooldown)
+            isCooldown = false;
     }
 
     private void TryToApplyDivineShield()
@@ -59,8 +55,11 @@ public class KnightAbility : MonoBehaviour, IAbility
     {
         yield return new WaitForSeconds(shieldTime);
 
-        hero.GainMagicalResistance(-bonusMagicalResistance);
-        hero.GainArmor(-bonusArmor);
+        if (isCooldown)
+        {
+            hero.GainMagicalResistance(-bonusMagicalResistance);
+            hero.GainArmor(-bonusArmor);
+        }
 
         isCooldown = false;
     }

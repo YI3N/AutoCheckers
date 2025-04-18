@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class OrcAbilitiy : MonoBehaviour, IAbility
 {
-    private static bool abilityActive = false;
+    public static readonly int maxLvl = 2;
+    public static readonly int lvlThreshold = 2;
     private readonly List<int> hpBoost = new List<int>() {0, 150};
+    
+    private static bool abilityActive = false;
 
     private Hero hero;
-
-    public static readonly int lvlThreshold = 2;
-    public static readonly int maxLvl = 2;
+    private int currentLevel;
 
     void Awake()
     {
@@ -23,30 +24,24 @@ public class OrcAbilitiy : MonoBehaviour, IAbility
             return;
 
         abilityActive = true;
-        int level = heroes / lvlThreshold;
-        ApplyHpBoost(level, false);
+        currentLevel = heroes / lvlThreshold;
+        ApplyHpBoost();
     }
 
-    public void DeactivateAbility(int heroes)
+    public void DeactivateAbility()
     {
-        if (heroes < lvlThreshold || !abilityActive)
-            return;
-
-        abilityActive = false;
-        int level = heroes / lvlThreshold;
-        ApplyHpBoost(level, true);
+        if (abilityActive)
+            abilityActive = false;
     }
 
-    private void ApplyHpBoost(int level, bool isNegative)
+    private void ApplyHpBoost()
     {
-        int boostValue = isNegative ? -hpBoost[level] : hpBoost[level];
+        int boostValue = hpBoost[currentLevel];
 
-        foreach (GameObject piece in hero.Owner.HeroesOnBoard)
+        foreach (GameObject ally in hero.Owner.HeroesOnBoard)
         {
-            Hero ally = piece.GetComponent<Hero>();
-            ally.GainMaxHealth(boostValue);
+            ally.GetComponent<Hero>().GainMaxHealth(boostValue);
         }
-
     }
 
     public int GetLvlThreshold()
