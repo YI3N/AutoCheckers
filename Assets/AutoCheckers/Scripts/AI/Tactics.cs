@@ -24,6 +24,7 @@ public class Tactics
     public void CreateTactic(Dictionary<string, float> battlePriority)
     {
         SetDangerBoard();
+        SetHeroes(battlePriority);
         SetBattleOrder(battlePriority);
     }
 
@@ -55,7 +56,7 @@ public class Tactics
         return true;
     }
 
-    public void SetHeroes(Dictionary<string, float> heroWeights)
+    private void SetHeroes(Dictionary<string, float> battlePriority)
     {
         battleHeroes.Clear();
         benchHeroes.Clear();
@@ -80,7 +81,7 @@ public class Tactics
         }
 
         battleHeroes = battleList.Values
-            .OrderByDescending(h => heroWeights[h.name])
+            .OrderByDescending(h => battlePriority[h.name])
             .Take(owner.Level)
             .ToList();
 
@@ -132,7 +133,9 @@ public class Tactics
         Vector2 target = GetMainDangerPoint();
         Vector2 neighbor = GetMostDangerousNeighbor(target);
 
-        foreach (KeyValuePair<string, float> kvp in battlePriority)
+        Dictionary<string, float> priority = battlePriority.Take(owner.Level).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        foreach (KeyValuePair<string, float> kvp in priority)
         {
             GameObject piece = owner.HeroesOnBoard.FirstOrDefault(piece => piece.GetComponent<Hero>().name == kvp.Key);
             Hero hero = piece.GetComponent<Hero>();

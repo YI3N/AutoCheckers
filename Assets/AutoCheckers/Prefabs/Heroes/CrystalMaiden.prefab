@@ -114,7 +114,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: attackRange
-      value: 3
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: mana.Array.size

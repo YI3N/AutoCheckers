@@ -42,7 +42,7 @@ public class Analytics
     public void SetFreeSpace(int amount)
     {
         FreeSpace += amount;
-        Debug.Log($"[Analytics:{owner.Tag}] FreeSpace changed by {amount}, now {FreeSpace}");
+        Debug.Log($"[Analytics:{owner.Tag}] Свободное место изменено на {amount}, теперь {FreeSpace}");
     }
 
     public void SetDangerPlayers()
@@ -53,7 +53,7 @@ public class Analytics
         float ownerDanger = owner.Wins / (float)(GameManager.instance.Round);
         float opponentDanger = opponent.Wins / (float)(GameManager.instance.Round);
 
-        Debug.Log($"[Analytics:{owner.Tag}] SetDangerPlayers - Owner: {ownerDanger:F2}, Opponent: {opponentDanger:F2}");
+        Debug.Log($"[Analytics:{owner.Tag}] Опасность игроков - Свой: {ownerDanger:F2}, Оппонент: {opponentDanger:F2}");
 
         DangerPlayers.Add(owner.Tag.ToString(), ownerDanger);
         DangerPlayers.Add(opponent.Tag.ToString(), opponentDanger);
@@ -65,7 +65,7 @@ public class Analytics
         float mean = values.Average();
         float mad = values.Select(x => Mathf.Abs(x - mean)).Average();
 
-        Debug.Log($"[Analytics:{owner.Tag}] MAD calculated: {mad:F3}");
+        Debug.Log($"[Analytics:{owner.Tag}] MAD рассчитано: {mad:F3}");
 
         return mad;
     }
@@ -74,16 +74,16 @@ public class Analytics
     {
         HeroBattlePriorities.Clear();
 
-        foreach (GameObject piece in owner.HeroesOnBoard)
+        foreach (GameObject piece in owner.HeroesOnBoard.Concat(owner.HeroesOnBench).ToList())
         {
             Hero hero = piece.GetComponent<Hero>();
             if (!HeroBattlePriorities.ContainsKey(hero.name))
             {
-                float utility = (owner.AttackStatistics == 0 || owner.DefenceStatistics == 0) ? 0 : hero.AttackStatistics / (float)owner.AttackStatistics + hero.DefenceStatistics / (float)owner.DefenceStatistics;
+                float utility = (owner.AttackStatistics == 0 || owner.DefenceStatistics == 0) ? 1 : hero.AttackStatistics / (float)owner.AttackStatistics + hero.DefenceStatistics / (float)owner.DefenceStatistics;
                 float value = hero.Level * utility;
                 HeroBattlePriorities.Add(hero.name, value);
 
-                Debug.Log($"[Analytics:{owner.Tag}] Battle priority for {hero.name}: {value:F2}");
+                Debug.Log($"[Analytics:{owner.Tag}] Приоритет боя для {hero.name}: {value:F2}");
             }
         }
 
@@ -99,7 +99,7 @@ public class Analytics
         int freeBenchSpace = 8 - owner.HeroesOnBench.Count;
         FreeSpace = freeBoardSpace + freeBenchSpace;
 
-        Debug.Log($"[Analytics:{owner.Tag}] FreeSpace: {FreeSpace}, Board: {freeBoardSpace}, Bench: {freeBenchSpace}");
+        Debug.Log($"[Analytics:{owner.Tag}] Свободное место: {FreeSpace}, На поле: {freeBoardSpace}, На скамейке: {freeBenchSpace}");
 
         float minWeight = Mathf.Infinity;
 
@@ -112,7 +112,7 @@ public class Analytics
                 float heroWeight = CountHeroWeight(hero);
                 HeroBuyPriorities.Add(hero.name, heroWeight);
 
-                Debug.Log($"[Analytics:{owner.Tag}] Hero {hero.name} weight: {heroWeight:F2}");
+                Debug.Log($"[Analytics:{owner.Tag}] Вес героя {hero.name}: {heroWeight:F2}");
 
                 if (heroWeight < minWeight)
                 {
@@ -130,7 +130,7 @@ public class Analytics
         }
 
         WeakestWeight = minWeight == Mathf.Infinity ? 0 : minWeight;
-        Debug.Log($"[Analytics:{owner.Tag}] Weakest weight: {WeakestWeight:F2}, UniqueHeroes: {UniqueHeroes}");
+        Debug.Log($"[Analytics:{owner.Tag}] Наименьший вес: {WeakestWeight:F2}, Уникальные герои: {UniqueHeroes}");
 
         int amount = UniqueHeroes + freeBoardSpace + freeBenchSpace + 1;
         int freeSpace = amount - HeroBuyPriorities.Count();
@@ -147,7 +147,7 @@ public class Analytics
         foreach (KeyValuePair<string, float> hero in shopPriorities.Take(freeSpace))
         {
             HeroBuyPriorities.Add(hero.Key, hero.Value);
-            Debug.Log($"[Analytics:{owner.Tag}] Added shop hero {hero.Key} with weight {hero.Value:F2}");
+            Debug.Log($"[Analytics:{owner.Tag}] Добавлен герой из магазина {hero.Key} с весом {hero.Value:F2}");
         }
 
         HeroBuyPriorities = HeroBuyPriorities.OrderByDescending(kv => kv.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
@@ -162,7 +162,7 @@ public class Analytics
 
         float result = spawnChance + duplicateFactor + raceFactor + classFactor;
 
-        Debug.Log($"[Analytics:{owner.Tag}] Weight breakdown for {hero.name} → Spawn: {spawnChance:F2}, Dup: {duplicateFactor:F2}, Race: {raceFactor:F2}, Class: {classFactor:F2} = {result:F2}");
+        Debug.Log($"[Analytics:{owner.Tag}] Разбор веса для {hero.name} → Шанс: {spawnChance:F3}, Дубликаты: {duplicateFactor:F3}, Раса: {raceFactor:F3}, Класс: {classFactor:F2} = {result:F2}");
 
         return result;
     }
@@ -172,7 +172,7 @@ public class Analytics
     {
         float rarityChance = Shop.instance.GetCurrentRaritySpawnChance(owner.Level, hero.Rarity);
 
-        List<GameObject> heroes = Shop.instance.GetHeroRarityList(hero.Rarity);
+        List<GameObject> heroes = Shop.instance.GetHeroRarityList(hero.Rarity).Concat(Shop.instance.GetCurrentCardShop(opponent.Tag)).ToList();
         int heroDuplicates = 0;
 
         foreach (GameObject card in heroes)
@@ -182,7 +182,19 @@ public class Analytics
                 heroDuplicates += 1;
         }
 
-        float chance = heroes.Count() == 0 ? 0 : rarityChance * heroDuplicates / heroes.Count();
+        List<GameObject> currentShop = Shop.instance.GetCurrentHeroShop(owner.Tag);
+
+        int heroDupInShop = 0;
+        foreach (GameObject piece in currentShop)
+        {
+            Hero shopHero = piece.GetComponent<Hero>();
+            if (shopHero.ID == hero.ID)
+                heroDupInShop += 1;
+        }
+
+        int heroCount = heroes.Count();
+
+        float chance = heroCount == 0 ? 0 : rarityChance * heroDupInShop * heroDuplicates / heroCount;
 
         return chance;
     }
@@ -251,7 +263,7 @@ public class Analytics
 
         float result = currentFactor - previousFactor;
 
-        Debug.Log($"[Analytics:{owner.Tag}] {hero.name} DupFactorGainPrev = {result:F2} (Current: {currentFactor:F2}, Prev: {previousFactor:F2})");
+        Debug.Log($"[Analytics:{owner.Tag}] {hero.name} Потеря фактора дубликатов: {result:F2} (Текущий: {currentFactor:F2}, Предыдущий: {previousFactor:F2})");
 
         return currentFactor - previousFactor;
     }
@@ -265,8 +277,7 @@ public class Analytics
 
         float result = futureFactor - currentFactor;
 
-        Debug.Log($"[Analytics:{owner.Tag}] {hero.name} DupFactorGainNext = {result:F2} (Next: {futureFactor:F2}, Current: {currentFactor:F2})");
-
+        Debug.Log($"[Analytics:{owner.Tag}] {hero.name} Прирост фактора дубликатов: {result:F2} (Следующий: {futureFactor:F2}, Текущий: {currentFactor:F2})");
 
         return result;
     }
