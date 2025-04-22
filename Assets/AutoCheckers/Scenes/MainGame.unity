@@ -7377,6 +7377,10 @@ MonoBehaviour:
   - {fileID: 1306774046847667967, guid: 9d913a755df13f54e99e2751d800e6ef, type: 3}
   - {fileID: 1306774046847667967, guid: ae6434db1d0e66c45b24f1679226e2f9, type: 3}
   - {fileID: 1306774046847667967, guid: 593d5e47b00b39247bf5e4fc2c0b500e, type: 3}
+  - {fileID: 1306774046847667967, guid: 6634ebfbcef2a5d4cbd2546569a14ada, type: 3}
+  - {fileID: 1306774046847667967, guid: 01fa2bb68467c5842b052a3ffb4763a0, type: 3}
+  - {fileID: 1306774046847667967, guid: 0dbf1dc8b36cf17408cf4617db31f5e0, type: 3}
+  - {fileID: 1306774046847667967, guid: 4762c232399131e48906fe9a8418f96d, type: 3}
   humanRenderPoints:
   - {fileID: 1233817481}
   - {fileID: 896575037}

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class BerserkersCall : MonoBehaviour, ISpell
@@ -27,11 +28,11 @@ public class BerserkersCall : MonoBehaviour, ISpell
         isCooldown = true;
 
         hero.GainArmor(bonusArmor[hero.Upgrades]);
-        List<Hero> heroes = Board.instance.GetHeroesInRange(hero.CurrentCell, range);
-        foreach (Hero enemy in heroes)
+
+        List<Hero> enemies = Board.instance.GetHeroesInRange(hero.CurrentCell, range).Where(h => h.tag != hero.tag).ToList();
+        foreach (Hero enemy in enemies)
         {
-            if (enemy.tag != tag)
-                enemy.SetTargetEnemy(hero);
+            enemy.SetTargetEnemy(hero);
         }
 
         StartCoroutine(Deactivate());

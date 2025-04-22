@@ -81,9 +81,6 @@ public class Player
     {
         bool isDuplicate = IsHeroOnBoard(hero);
 
-        HeroesOnBoard.Add(hero);
-        HeroesOnBench.Remove(hero);
-
         if (!isDuplicate)
         {
             ClassHeroes[hero.GetComponent<Hero>().HeroClass] += 1;
@@ -92,7 +89,10 @@ public class Player
             UIManager.instance.UpdatePlayerUI(this);
         }
 
-        isDuplicate = IsHeroOnBench(hero);
+        HeroesOnBoard.Add(hero);
+        HeroesOnBench.Remove(hero);
+
+        isDuplicate = IsHeroOnBoard(hero) || IsHeroOnBench(hero);
         if (!isDuplicate)
         {
             BenchClasses[hero.GetComponent<Hero>().HeroClass] -= 1;
@@ -102,7 +102,8 @@ public class Player
 
     public void MoveHeroToBench(GameObject hero)
     {
-        bool isDuplicate = IsHeroOnBench(hero);
+        bool isDuplicate = IsHeroOnBoard(hero) || IsHeroOnBench(hero);
+
         if (!isDuplicate)
         {
             BenchClasses.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
@@ -112,7 +113,7 @@ public class Player
         HeroesOnBench.Add(hero);
         HeroesOnBoard.Remove(hero);
 
-       isDuplicate = IsHeroOnBoard(hero);
+        isDuplicate = IsHeroOnBoard(hero);
 
         if (!isDuplicate)
         {
@@ -120,6 +121,31 @@ public class Player
             RaceHeroes[hero.GetComponent<Hero>().Race] -= 1;
 
             UIManager.instance.UpdatePlayerUI(this);
+        }
+    }
+
+    public void RemoveHero(GameObject piece)
+    {
+        Hero hero = piece.GetComponent<Hero>();
+        if (hero.StartCell.tag == nameof(GameTag.Board))
+        {
+            bool isDuplicate = IsHeroOnBoard(piece);
+
+            if (!isDuplicate)
+            {
+                ClassHeroes[hero.HeroClass] -= 1;
+                RaceHeroes[hero.Race] -= 1;
+            }
+        }
+        else
+        {
+            bool isDuplicate = IsHeroOnBoard(piece) || IsHeroOnBench(piece);
+
+            if (!isDuplicate)
+            {
+                BenchClasses[hero.HeroClass] -= 1;
+                BenchRaces[hero.Race] -= 1;
+            }
         }
     }
 

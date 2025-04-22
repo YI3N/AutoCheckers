@@ -1,15 +1,15 @@
-using AutoCheckers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class BatteryAssault : MonoBehaviour, ISpell
+public class BladeFury : MonoBehaviour, ISpell
 {
-    private readonly int range = 1;
-    private readonly List<int> damage = new List<int>() { 50, 75, 100 };
-    private readonly List<int> cooldown = new List<int>() { 12, 10, 8 };
+    private readonly int range = 2;
+    private readonly List<int> damage = new List<int>() { 50, 100, 150 };
+    private readonly int bonusMagicResistance = 100;
     private readonly int duration = 5;
+    private readonly int cooldown = 12;
 
     private bool isCooldown = false;
     private bool isAttack = false;
@@ -30,36 +30,35 @@ public class BatteryAssault : MonoBehaviour, ISpell
         isCooldown = true;
         isAttack = true;
 
-        StartCoroutine(StartAssault());
+        hero.GainMagicalResistance(bonusMagicResistance);
         StartCoroutine(Deactivate());
         StartCoroutine(Cooldown());
     }
 
-    public IEnumerator StartAssault()
+    public IEnumerator StartAttack()
     {
         List<Hero> enemies = Board.instance.GetHeroesInRange(hero.CurrentCell, range).Where(h => h.tag != hero.tag).ToList();
 
-        if (enemies.Count != 0)
-        {
-            Hero enemy = enemies[Random.Range(0, enemies.Count - 1)];
+        foreach (Hero enemy in enemies)
             hero.MagicalAttack(enemy, damage[hero.Upgrades]);
-        }
 
         yield return new WaitForSeconds(GameManager.instance.attackTime);
 
         if (isAttack)
-            StartCoroutine(StartAssault());
+            StartCoroutine(StartAttack());
     }
 
     private IEnumerator Deactivate()
     {
         yield return new WaitForSeconds(duration);
         isAttack = false;
+        if (isCooldown)
+            hero.GainMagicalResistance(-bonusMagicResistance);
     }
 
     private IEnumerator Cooldown()
     {
-        yield return new WaitForSeconds(cooldown[hero.Upgrades]);
+        yield return new WaitForSeconds(cooldown);
         isCooldown = false;
     }
 

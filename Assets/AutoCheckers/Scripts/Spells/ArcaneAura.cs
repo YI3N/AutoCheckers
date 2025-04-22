@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class ArcaneAura : MonoBehaviour, ISpell
@@ -27,11 +28,10 @@ public class ArcaneAura : MonoBehaviour, ISpell
         {
             isCooldown = true;
 
-            List<Hero> heroes = Board.instance.GetHeroesInRange(hero.CurrentCell, range);
+            List<Hero> heroes = Board.instance.GetHeroesInRange(hero.CurrentCell, range).Where(h => h.tag == hero.tag).ToList();
             foreach (Hero ally in heroes)
             {
-                if (ally.tag == tag)
-                    ally.GainMana(manaRegeneration[hero.Upgrades]);
+                ally.GainMana(manaRegeneration[hero.Upgrades]);
             }
 
             StartCoroutine(Cooldown());

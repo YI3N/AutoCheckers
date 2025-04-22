@@ -132,7 +132,7 @@ public class Board : MonoBehaviour
 
                 BoardCell cell = boardCells[targetCell.Row + i, targetCell.Col + j];
 
-                if (cell.OccupiedHero != null)
+                if (cell.OccupiedHero != null && cell.OccupiedHero.gameObject.activeSelf)
                     enemies.Add(cell.OccupiedHero);
             }
         }

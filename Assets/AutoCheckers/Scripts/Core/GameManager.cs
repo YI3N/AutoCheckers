@@ -11,10 +11,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance = null;
 
-    [SerializeField]
-    private float attackTime = 1;
-    [SerializeField]
-    private float damageTime = 1;
+    public readonly float attackTime = 1;
+    public readonly float damageTime = 1;
 
     private GameObject heroHit;
     private List<Hero> fightHeroes = new List<Hero>();
@@ -33,6 +31,8 @@ public class GameManager : MonoBehaviour
             instance = this;
         else if (instance == this)
             Destroy(this);
+
+        Time.timeScale = 2f;
     }
 
     // Start is called before the first frame update

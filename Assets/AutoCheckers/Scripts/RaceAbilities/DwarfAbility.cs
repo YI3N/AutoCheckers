@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DwarfAbility : MonoBehaviour
+public class DwarfAbility : MonoBehaviour, IAbility
 {
     public static readonly int maxLvl = 2;
     public static readonly int lvlThreshold = 2;

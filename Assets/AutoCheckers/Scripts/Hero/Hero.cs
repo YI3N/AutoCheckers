@@ -105,7 +105,7 @@ public class Hero : MonoBehaviour
     }
     public float MagicalResistance
     {
-        get { return 1 - (magicalResistance + bonusMagicalResistance) /100;  }
+        get { return Mathf.Clamp(1 - (magicalResistance + bonusMagicalResistance) / 100, 0f, 10f);  }
     }
     public int Level
     {
@@ -133,11 +133,17 @@ public class Hero : MonoBehaviour
     public int DefenceStatistics { get; private set; }
 
     public int DamageDealt { get; private set; } = 0;
-    private int damageTook = 0;
+    public int DamageTook { get; private set; } = 0;
+
+    public bool IsTargetLowest { get; private set; } = false;
 
     private ISpell spell;
     private List<Action> onAttackEvents = new List<Action>();
     private List<Action> onHitEvents = new List<Action>();
+    private List<Action> gainAttackEvents = new List<Action>();
+    private List<Action> gainHitEvents = new List<Action>();
+    private List<Action> removeAttackEvents = new List<Action>();
+    private List<Action> removeHitEvents = new List<Action>();
 
     private int bonusHealth = 0;
     private int bonusHealthRegeneration = 0;
@@ -146,7 +152,6 @@ public class Hero : MonoBehaviour
     private int bonusArmor = 0;
     private int bonusMagicalResistance = 0;
     private int bonusAttackRange = 0;
-    private bool isTargetLowest = false;
     private bool isSilent = false;
 
     public void SetFriendsAndFoes(GameTag tag)
@@ -183,7 +188,7 @@ public class Hero : MonoBehaviour
         spell.ResetAbility();
 
         DamageDealt = 0;
-        damageTook = 0;
+        DamageTook = 0;
 
         bonusArmor = 0;
         bonusHealth = 0;
@@ -199,7 +204,7 @@ public class Hero : MonoBehaviour
         isSilent = false;
         silenceIcon.SetActive(false);
 
-        isTargetLowest = false;
+        IsTargetLowest = false;
 
         CurrentCell.Deoccupy();
         CurrentCell = StartCell;
@@ -298,12 +303,44 @@ public class Hero : MonoBehaviour
 
     public void GainTargetLowest()
     {
-        isTargetLowest = true;
+        IsTargetLowest = true;
     }
 
     public void GainOnAttackEvent(Action func)
     {
-        onAttackEvents.Add(func);
+        gainAttackEvents.Add(func);
+    }
+
+    public void GainOnHitEvent(Action func)
+    {
+        gainHitEvents.Add(func);
+    }
+
+    private void AddEvents()
+    {
+        foreach (var func in gainAttackEvents)
+            onAttackEvents.Add(func);
+        foreach (var func in gainHitEvents)
+            onHitEvents.Add(func);
+
+        gainAttackEvents.Clear();
+        gainHitEvents.Clear();
+    }
+
+    public void RemoveOnHitEvent(Action func)
+    {
+        removeHitEvents.Add(func);
+    }
+
+    private void RemoveEvents()
+    {
+        foreach (var func in removeAttackEvents)
+            onAttackEvents.Remove(func);
+        foreach (var func in removeHitEvents)
+            onHitEvents.Remove(func);
+
+        removeHitEvents.Clear();
+        removeHitEvents.Clear();
     }
 
     public void ClearStatistic()
@@ -336,6 +373,9 @@ public class Hero : MonoBehaviour
 
     public void TakeAction()
     {
+        AddEvents();
+        RemoveEvents();
+
         CurrentHealth += HealthRegeneration;
         CurrentMana += manaRegeneration;
 
@@ -373,7 +413,7 @@ public class Hero : MonoBehaviour
         DamageDealt += TargetEnemy.OnHit(Damage, GameTag.Physical);
         AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
+        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
 
         TriggerOnAttackEvents();
     }
@@ -386,6 +426,19 @@ public class Hero : MonoBehaviour
         GainMana(Mathf.Clamp(DamageDealt, 0, 10));
     }
 
+    public void PureAttack(Hero enemy, int damage)
+    {
+        DamageDealt += enemy.OnHit(damage, GameTag.Pure);
+        AttackStatistics += DamageDealt;
+
+        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
+    }
+
+    public void AbsorbDamage(int damage)
+    {
+        DamageTook -= damage;
+    }
+
     private void TriggerOnAttackEvents()
     {
         foreach (var func in onAttackEvents)
@@ -394,12 +447,22 @@ public class Hero : MonoBehaviour
         }
     }
 
+    private void TriggerOnHitEvents()
+    {
+        foreach (var func in onHitEvents)
+        {
+            func.Invoke();
+        }
+    }
+
     public void TakeDamage()
     {
-        if (damageTook > 0)
+        TriggerOnHitEvents();
+
+        if (DamageTook > 0)
         {
-            CurrentHealth -= damageTook;
-            DefenceStatistics += damageTook;
+            CurrentHealth -= DamageTook;
+            DefenceStatistics += DamageTook;
 
             if (CurrentHealth <= 0)
             {
@@ -407,8 +470,8 @@ public class Hero : MonoBehaviour
                 gameObject.SetActive(false);
             }
 
-            GainMana(damageTook);
-            damageTook = 0;
+            GainMana(DamageTook);
+            DamageTook = 0;
             healthBar.value = CurrentHealth / (float)MaxHealth;
         }
     }
@@ -417,7 +480,7 @@ public class Hero : MonoBehaviour
     {
         damage = ApplyDamageReduction(damage, attackType);
 
-        damageTook += damage;
+        DamageTook += damage;
         return damage;
     }
 
@@ -451,7 +514,7 @@ public class Hero : MonoBehaviour
             float distance = Mathf.FloorToInt(Vector2.Distance(CurrentCell.GetBoardPosition(), enemy.CurrentCell.GetBoardPosition()));
 
 
-            if (isTargetLowest && distance <= AttackRange)
+            if (IsTargetLowest && distance <= AttackRange)
                 enemiesInRange.Add(enemy);
 
             if (distance < nearestDistance)
@@ -462,7 +525,7 @@ public class Hero : MonoBehaviour
             }
         }
 
-        if (isTargetLowest && enemiesInRange.Count > 0)
+        if (IsTargetLowest && enemiesInRange.Count > 0)
         {
             TargetEnemy = enemiesInRange.OrderBy(e => e.CurrentHealth).First();
             possibleMoves = Board.instance.GetAvailableCells(TargetEnemy.CurrentCell, CurrentCell, moveDistance, AttackRange);

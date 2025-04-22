@@ -182,7 +182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: maxDamage.Array.data[1]
-      value: 110
+      value: 115
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: maxDamage.Array.data[2]
@@ -231,10 +231,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa6d4907780c0d74fbbdc00d967d4ebb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  range: 1
-  bonusArmor: 050000000a0000000f000000
-  duration: 020000000300000004000000
-  cooldown: 10
 --- !u!114 &-7133152918689095903
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -247,8 +243,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b993167527a71243b346b6d5c4c1058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lvlThreshold: 3
-  armor: 00000000050000000c00000015000000
 --- !u!114 &-6506043491954115801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,5 +255,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2ead47723e3280408547d6688d380ed, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lvlThreshold: 2
-  hpBoost: 640000005e0100005e010000

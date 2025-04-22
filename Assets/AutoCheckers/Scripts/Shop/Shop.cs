@@ -146,9 +146,14 @@ public class Shop : MonoBehaviour
 
     public void SellHero(Hero hero, Player player)
     {
+        player.RemoveHero(hero.gameObject);
+        UIManager.instance.UpdatePlayerUI(player);
         player.GainMoney(hero.Level);
         AddHeroToPull(hero);
-        Destroy(hero.gameObject);
+        DestroyImmediate(hero.gameObject);
+
+        player.HeroesOnBoard.RemoveAll(item => item == null);
+        player.HeroesOnBench.RemoveAll(item => item == null);
     }
 
     private List<GameObject> GetRandomHeroList(int playerLevel)
@@ -234,7 +239,7 @@ public class Shop : MonoBehaviour
 
         if (locked)
         {
-            locked = false;
+            LockShop(player.Tag);
             lockButton.ChangeButton();
             return;
         }
@@ -284,7 +289,10 @@ public class Shop : MonoBehaviour
 
     private void ClearShop(GameTag tag)
     {
-        var (_, _, shop, _, _, renders, _) = GetShopData(tag);
+        var (_, _, shop, locked, _, renders, _) = GetShopData(tag);
+
+        if (locked)
+            return;
 
         foreach (GameObject card in shop)
         {
@@ -303,17 +311,17 @@ public class Shop : MonoBehaviour
     public void TryToRerollHumanShop()
     {
         if (GameManager.instance.Human.Money >= RerollCost)
-            RerollShop(GameTag.Human, true);
+        {
+            if (!HumanLocked)
+                RerollShop(GameTag.Human, true);
+        }
         else
             UIManager.instance.OnRerollFailed();
     }
 
     public void RerollShop(GameTag tag, bool isPaid)
     {
-        var (player, _, _, locked, _, _, _) = GetShopData(tag);
-
-        if (locked)
-            return;
+        var (player, _, _, _, _, _, _) = GetShopData(tag);
 
         if (isPaid)
             player.Purchase(RerollCost);
