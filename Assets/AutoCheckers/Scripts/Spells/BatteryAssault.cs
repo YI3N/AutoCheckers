@@ -47,7 +47,7 @@ public class BatteryAssault : MonoBehaviour, ISpell
 
         yield return new WaitForSeconds(GameManager.instance.attackTime);
 
-        if (isAttack)
+        if (isAttack && gameObject.activeSelf)
             StartCoroutine(StartAssault());
     }
 

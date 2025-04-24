@@ -44,7 +44,7 @@ public class Board : MonoBehaviour
             if (cell.Row < minRow || cell.Row > maxRow)
                 continue;
 
-            if (cell.IsOccupied == false)
+            if (!cell.IsOccupied)
             {
                 hero.GetComponent<Hero>().SetFriendsAndFoes(tag);
                 hero.GetComponent<Hero>().SetStartCell(cell);
@@ -52,16 +52,6 @@ public class Board : MonoBehaviour
             }
         }
 
-        hero.GetComponent<Hero>().CheckHeroUpgrade();
-    }
-
-    // потом удалить
-    public void SetTestHero(GameObject hero, int row, int col, GameTag tag)
-    {
-        GameManager.instance.AI.SetHeroToBoard(hero);
-
-        hero.GetComponent<Hero>().SetFriendsAndFoes(tag);
-        hero.GetComponent<Hero>().SetStartCell(boardCells[row, col]);
         hero.GetComponent<Hero>().CheckHeroUpgrade();
     }
 
@@ -86,7 +76,7 @@ public class Board : MonoBehaviour
                 if (Mathf.FloorToInt(Vector2.Distance(possibleCell.GetBoardPosition(), targetCell.GetBoardPosition())) > attackRange)
                     continue;
 
-                if (possibleCell.IsOccupied == false)
+                if (!possibleCell.IsOccupied)
                     availableCells.Add(possibleCell);
             }
         }
@@ -106,7 +96,7 @@ public class Board : MonoBehaviour
                 if (Mathf.FloorToInt(Vector2.Distance(ownersCell.GetBoardPosition(), possibleCell.GetBoardPosition())) > moveDistance)
                     continue;
 
-                if (possibleCell.IsOccupied == false)
+                if (!possibleCell.IsOccupied)
                     availableCells.Add(possibleCell);
                 else if (possibleCell.Row == ownersCell.Row && possibleCell.Col == ownersCell.Col)
                     availableCells.Add(possibleCell);
@@ -132,11 +122,79 @@ public class Board : MonoBehaviour
 
                 BoardCell cell = boardCells[targetCell.Row + i, targetCell.Col + j];
 
-                if (cell.OccupiedHero != null && cell.OccupiedHero.gameObject.activeSelf)
+                if (cell.IsOccupied && cell.OccupiedHero.gameObject.activeSelf)
                     enemies.Add(cell.OccupiedHero);
             }
         }
 
         return enemies;
+    }
+
+    public List<Hero> GetHeroesInLine(BoardCell fromCell, BoardCell toCell, int width)
+    {
+        List<Hero> heroes = new List<Hero>();
+
+        int dx = toCell.Col - fromCell.Col;
+        int dy = toCell.Row - fromCell.Row;
+
+        int steps = Mathf.Max(Mathf.Abs(dx), Mathf.Abs(dy));
+
+        float stepX = dx / (float)steps;
+        float stepY = dy / (float)steps;
+
+        Vector2 normal = new Vector2(-stepY, stepX).normalized;
+
+        for (int i = 0; i <= steps; i++)
+        {
+            float baseX = fromCell.Col + stepX * i;
+            float baseY = fromCell.Row + stepY * i;
+
+            for (int offset = -width; offset <= width; offset++)
+            {
+                float checkX = baseX + normal.x * offset;
+                float checkY = baseY + normal.y * offset;
+
+                int col = Mathf.RoundToInt(checkX);
+                int row = Mathf.RoundToInt(checkY);
+
+                if (row < 0 || row > 7 || col < 0 || col > 7)
+                    continue;
+
+                BoardCell cell = boardCells[row, col];
+
+                if (cell.IsOccupied && cell.OccupiedHero.gameObject.activeSelf && !heroes.Contains(cell.OccupiedHero))
+                    heroes.Add(cell.OccupiedHero);
+            }
+        }
+
+        if (toCell.IsOccupied && toCell.OccupiedHero.gameObject.activeSelf && !heroes.Contains(toCell.OccupiedHero))
+            heroes.Add(toCell.OccupiedHero);
+
+        return heroes;
+    }
+
+    public BoardCell GetFirstAvailableCell(BoardCell targetCell)
+    {
+        for (int range = 1; range < 4; range++)
+        {
+            for (int i = -range; i <= range; i++)
+            {
+                if (targetCell.Row + i < 0 || targetCell.Row + i > 7)
+                    continue;
+
+                for (int j = -range; j <= range; j++)
+                {
+                    if (targetCell.Col + j < 0 || targetCell.Col + j > 7)
+                        continue;
+
+                    BoardCell cell = boardCells[targetCell.Row + i, targetCell.Col + j];
+
+                    if (!cell.IsOccupied)
+                        return cell;
+                }
+            }
+        }
+
+        return null;
     }
 }

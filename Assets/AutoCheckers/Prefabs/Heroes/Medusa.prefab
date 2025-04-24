@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: 621061271359789166, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: da8d707f9fef2de4380ad5da2ab37802, type: 2}
+      objectReference: {fileID: 2100000, guid: 9f4e9b0d362e2054d84a06fe97cb03b7, type: 2}
     - target: {fileID: 1307199796831871589, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0
@@ -22,7 +22,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_Name
-      value: Clockwerk
+      value: Medusa
       objectReference: {fileID: 0}
     - target: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_TagString
@@ -71,18 +71,18 @@ PrefabInstance:
     - target: {fileID: 4351698059945662758, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: 1b222765062c1bd41821e973761c3778, type: 2}
+      objectReference: {fileID: 2100000, guid: eabb829026f3928479041923cd5aee9e, type: 2}
     - target: {fileID: 6223520413444839778, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: id
-      value: 3
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: cost
-      value: 1
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: mana
@@ -90,7 +90,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: race
-      value: 6
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: armor
@@ -102,7 +102,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: rarity
-      value: 0
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: opponent
@@ -110,11 +110,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: heroClass
-      value: 7
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: attackRange
-      value: 1
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: mana.Array.size
@@ -129,7 +129,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
-      propertyPath: healthRegeneration
+      propertyPath: magicalResistance
       value: 10
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
@@ -158,15 +158,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: health.Array.data[0]
-      value: 700
+      value: 750
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: health.Array.data[1]
-      value: 1400
+      value: 1500
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: health.Array.data[2]
-      value: 2800
+      value: 3000
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: minDamage.Array.size
@@ -174,27 +174,27 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: maxDamage.Array.data[0]
-      value: 40
+      value: 70
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: maxDamage.Array.data[1]
-      value: 80
+      value: 140
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: maxDamage.Array.data[2]
-      value: 160
+      value: 280
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: minDamage.Array.data[0]
-      value: 30
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: minDamage.Array.data[1]
-      value: 60
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 8563232939053545746, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       propertyPath: minDamage.Array.data[2]
-      value: 120
+      value: 200
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -202,20 +202,20 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -3945992597256293580}
+      addedObject: {fileID: 8033901532590575573}
     - targetCorrespondingSourceObject: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -3163580380051582069}
+      addedObject: {fileID: 4863923946582603480}
     - targetCorrespondingSourceObject: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: -8251167701450014068}
+      addedObject: {fileID: 4718715662554608353}
   m_SourcePrefab: {fileID: 100100000, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
 --- !u!1 &4070037689986140238 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1413725249216231867, guid: 1cd6a652857e9604092cecf46b99d67d, type: 3}
   m_PrefabInstance: {fileID: 3162971871572128245}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &-3945992597256293580
+--- !u!114 &8033901532590575573
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -224,10 +224,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4070037689986140238}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a6435a65a66b71d49b7d908612af9b7a, type: 3}
+  m_Script: {fileID: 11500000, guid: 1ed47c3ce03cef946a754688f205cce3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-3163580380051582069
+--- !u!114 &4863923946582603480
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -236,10 +236,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4070037689986140238}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c0bd4bc474d19e46b8fa096e6b4d400, type: 3}
+  m_Script: {fileID: 11500000, guid: 8e39468ee4effb8479689fc2fc1b5a18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &-8251167701450014068
+--- !u!114 &4718715662554608353
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -248,6 +248,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 4070037689986140238}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 436bdd0951a775f46b8948a7c4b57888, type: 3}
+  m_Script: {fileID: 11500000, guid: 2c9a79d2c68485a48865bd4ff5e5bfa0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 

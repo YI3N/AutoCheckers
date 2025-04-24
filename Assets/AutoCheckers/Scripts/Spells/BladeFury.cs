@@ -31,6 +31,7 @@ public class BladeFury : MonoBehaviour, ISpell
         isAttack = true;
 
         hero.GainMagicalResistance(bonusMagicResistance);
+        StartCoroutine(StartAttack());
         StartCoroutine(Deactivate());
         StartCoroutine(Cooldown());
     }
@@ -44,7 +45,7 @@ public class BladeFury : MonoBehaviour, ISpell
 
         yield return new WaitForSeconds(GameManager.instance.attackTime);
 
-        if (isAttack)
+        if (isAttack && gameObject.activeSelf)
             StartCoroutine(StartAttack());
     }
 

@@ -98,7 +98,7 @@ public class Tactics
 
     private void MoveHeroesToBoard(List<Hero> heroes)
     {
-        int row = owner.Tag == GameTag.Human ? 0 : 4;
+        int row = owner.Tag == GameTag.Human ? 0 : 7;
         int col = 0;
 
         foreach (Hero hero in heroes)
@@ -108,7 +108,7 @@ public class Tactics
 
             if (col > 7)
             {
-                row++;
+                row += owner.Tag == GameTag.Human ? 1 : -1;
                 col = 0;
             }
             else
@@ -178,17 +178,10 @@ public class Tactics
 
     private void SetRangedPosition(Hero hero, Vector2 target, Vector2 neighbor)
     {
+        target = new Vector2(owner.Tag == GameTag.Human ? 4 : 3, target.y);
         List<Vector2> freeCells = GetFreeCellsForRanged()
             .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
             .ToList();
-
-        if (freeCells.Count == 0)
-        {
-            target = new Vector2(owner.Tag == GameTag.Human ? 4 : 3, target.y);
-            GetFreeCellsForRanged()
-            .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
-            .ToList();
-        }
 
         Vector2 bestCell = freeCells[0];
         float bestDist = Mathf.FloorToInt(Vector2.Distance(bestCell, target));

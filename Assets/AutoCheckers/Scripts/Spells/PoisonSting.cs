@@ -2,20 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Marksmanship : MonoBehaviour, ISpell
+public class PoisonSting: MonoBehaviour, ISpell
 {
-    private readonly List<float> damage = new List<float>() { 0.4f, 0.6f, 0.8f };
+    private readonly List<int> damage = new List<int>() { 10, 20, 30 };
 
     private Hero hero;
 
     void Awake()
     {
         hero = GetComponent<Hero>();
-    }
-
-    void Start()
-    {
-        hero.GainDamage(damage[hero.Upgrades]);
     }
 
     public bool CanCast()
@@ -25,7 +20,11 @@ public class Marksmanship : MonoBehaviour, ISpell
 
     public void CastSpell() { }
 
-    public void PassiveSpell() { }
+    public void PassiveSpell()
+    {
+        if (hero.TargetEnemy != null)
+            hero.MagicalAttack(hero.TargetEnemy, damage[hero.Upgrades]);
+    }
 
     public void ResetAbility() { }
 }

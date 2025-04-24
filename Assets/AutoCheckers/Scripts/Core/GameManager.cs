@@ -35,7 +35,6 @@ public class GameManager : MonoBehaviour
         Time.timeScale = 2f;
     }
 
-    // Start is called before the first frame update
     void Start()
     {
         GameObject[] cells = GameObject.FindGameObjectsWithTag(nameof(GameTag.HumanBench));
@@ -54,7 +53,6 @@ public class GameManager : MonoBehaviour
         managementH = new Management(Human);
     }
 
-    // Update is called once per frame
     void Update()
     {
         if (!IsPlaying && Input.GetMouseButtonDown(0))
@@ -110,7 +108,10 @@ public class GameManager : MonoBehaviour
     {
         if (heroHit != null && hitObject.GetComponent<BoardCell>().Row < 4)
         {
-            heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+            if (!hitObject.GetComponent<BoardCell>().IsOccupied)
+                heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+            else
+                SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
             ClearSelection();
         }
     }
@@ -119,18 +120,24 @@ public class GameManager : MonoBehaviour
     {
         if (heroHit != null)
         {
-            heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+            if (!hitObject.GetComponent<BoardCell>().IsOccupied)
+                heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+            else
+                SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
             ClearSelection();
         }
     }
 
     private void SwapHeroes(GameObject hitObject)
     {
-        Hero switchHero = hitObject.GetComponent<Hero>();
-        BoardCell switchCell = heroHit.GetComponent<Hero>().CurrentCell;
+        if (hitObject != heroHit)
+        {
+            Hero switchHero = hitObject.GetComponent<Hero>();
+            BoardCell switchCell = heroHit.GetComponent<Hero>().CurrentCell;
 
-        heroHit.GetComponent<Hero>().SetStartCell(switchHero.CurrentCell);
-        switchHero.SetStartCell(switchCell);
+            heroHit.GetComponent<Hero>().SetStartCell(switchHero.CurrentCell);
+            switchHero.SetStartCell(switchCell);
+        }
 
         ClearSelection();
     }
@@ -176,8 +183,29 @@ public class GameManager : MonoBehaviour
             StartCoroutine(RoundTick());
     }
 
+    // Жесткий костыль
+    private void RemoveBugs(Player player)
+    {
+        List<GameObject> toMove = new List<GameObject>();
+
+        foreach (GameObject piece in player.HeroesOnBoard)
+        {
+            Hero hero = piece.GetComponent<Hero>();
+            if (hero.CurrentCell.tag != nameof(GameTag.Board))
+                toMove.Add(piece);
+        }
+
+        foreach (GameObject piece in toMove)
+        {
+            player.HeroesOnBoard.Remove(piece);
+            player.HeroesOnBench.Add(piece);
+        }
+    }
+
     private void PrepairBoard(Player player)
     {
+        RemoveBugs(player);
+
         for (int i = 0; i < player.HeroesOnBoard.Count; i++)
         {
             Hero hero = player.HeroesOnBoard[i].GetComponent<Hero>();
@@ -192,7 +220,7 @@ public class GameManager : MonoBehaviour
             {
                 foreach (BoardCell cell in player.Bench)
                 {
-                    if (cell.IsOccupied == false)
+                    if (!cell.IsOccupied)
                     {
                         hero.SetStartCell(cell);
                         i--;

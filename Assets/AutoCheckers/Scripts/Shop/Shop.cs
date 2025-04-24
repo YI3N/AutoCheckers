@@ -50,7 +50,7 @@ public class Shop : MonoBehaviour
     public bool HumanLocked { get; private set; } = false;
     public bool AILocked { get; private set; } = false;
 
-    private readonly List<float[]> chances = new()
+    private readonly List<float[]> chances = new List<float[]>
     {
         new float[] { 1,    0,      0,      0,      0 },
         new float[] { .7f,  .3f,    0,      0,      0 },

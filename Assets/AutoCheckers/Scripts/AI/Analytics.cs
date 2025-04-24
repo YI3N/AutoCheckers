@@ -216,6 +216,8 @@ public class Analytics
     private float CountHeroDuplicateFactor(Hero hero)
     {
         int heroDuplicates = CountHeroDuplicates(hero);
+        if (heroDuplicates > 9)
+            heroDuplicates = 9;
         float factor = duplicateFactors[heroDuplicates];
 
         return factor;

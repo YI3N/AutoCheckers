@@ -18,6 +18,8 @@ public class Hero : MonoBehaviour
     private Stars upgradeUI;
     [SerializeField]
     private GameObject silenceIcon;
+    [SerializeField]
+    private GameObject stunIcon;
 
     [Header("Данные")]
     [SerializeField]
@@ -153,11 +155,15 @@ public class Hero : MonoBehaviour
     private int bonusMagicalResistance = 0;
     private int bonusAttackRange = 0;
     private bool isSilent = false;
+    private bool isStuned = false;
 
     public void SetFriendsAndFoes(GameTag tag)
     {
         Owner = (tag == GameTag.Human) ? GameManager.instance.Human : GameManager.instance.AI;
         Opponent = (tag == GameTag.Human) ? GameManager.instance.AI : GameManager.instance.Human;
+
+        if (tag == GameTag.Human)
+            healthBar.transform.Find("Fill Area").Find("Fill").GetComponent<Image>().color = new Color(0, 1, 0);
 
         gameObject.tag = Owner.Tag.ToString();
     }
@@ -167,6 +173,7 @@ public class Hero : MonoBehaviour
         CurrentHealth = MaxHealth;
         spell = GetComponent<ISpell>();
 
+        
         IAbility[] abilities = GetComponents<IAbility>();
 
         if (abilities.Length >= 2)
@@ -203,6 +210,8 @@ public class Hero : MonoBehaviour
 
         isSilent = false;
         silenceIcon.SetActive(false);
+        isStuned = false;
+        stunIcon.SetActive(false);
 
         IsTargetLowest = false;
 
@@ -359,11 +368,28 @@ public class Hero : MonoBehaviour
         }
     }
 
+    public void GetStuned(int seconds)
+    {
+        if (!isStuned)
+        {
+            isStuned = true;
+            stunIcon.SetActive(true);
+            StartCoroutine(RemoveStun(seconds));
+        }
+    }
+
     private IEnumerator RemoveSilence(int seconds)
     {
         yield return new WaitForSeconds(seconds);
         isSilent = false;
         silenceIcon.SetActive(false);
+    }
+
+    private IEnumerator RemoveStun(int seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        stunIcon.SetActive(false);
+        isStuned = false;
     }
 
     public void SetTargetEnemy(Hero hero)
@@ -373,28 +399,32 @@ public class Hero : MonoBehaviour
 
     public void TakeAction()
     {
-        AddEvents();
-        RemoveEvents();
-
-        CurrentHealth += HealthRegeneration;
-        CurrentMana += manaRegeneration;
-
-        DamageDealt = 0;
-
-        spell.PassiveSpell();
-
-        if (TargetEnemy != null && !TargetEnemy.gameObject.activeSelf)
-            TargetEnemy = null;
-
-        if (CanCastSpell())
+        if (gameObject.activeSelf)
         {
-            CurrentMana = 0;
-            spell.CastSpell();
+            AddEvents();
+            RemoveEvents();
+
+            CurrentHealth += HealthRegeneration;
+            CurrentMana += manaRegeneration;
+
+            DamageDealt = 0;
+
+            spell.PassiveSpell();
+
+            if (TargetEnemy != null && !TargetEnemy.gameObject.activeSelf)
+                TargetEnemy = null;
+
+            if (!isStuned)
+                if (CanCastSpell() && TargetEnemy != null)
+                {
+                    CurrentMana = 0;
+                    spell.CastSpell();
+                }
+                else if (CanAttackTarget())
+                    Attack();
+                else
+                    ChooseTarget();
         }
-        else if (CanAttackTarget())
-            Attack();
-        else
-            ChooseTarget();
     }
 
     private bool CanCastSpell()
@@ -464,9 +494,10 @@ public class Hero : MonoBehaviour
             CurrentHealth -= DamageTook;
             DefenceStatistics += DamageTook;
 
-            if (CurrentHealth <= 0)
+            if (CurrentHealth <= 0 && gameObject.activeSelf)
             {
                 Owner.HeroDied();
+                CurrentCell.Deoccupy();
                 gameObject.SetActive(false);
             }
 
@@ -568,7 +599,7 @@ public class Hero : MonoBehaviour
             Move(bestMove);
     }
 
-    private void Move(BoardCell moveTarget)
+    public void Move(BoardCell moveTarget)
     {
         if (CurrentCell != moveTarget)
         {
@@ -597,13 +628,14 @@ public class Hero : MonoBehaviour
 
             if (upgradeHeroes.Count >= CombineThreshold)
             {
-                upgradeHeroes[0].GetComponent<Hero>().Combine();
                 DestroyImmediate(upgradeHeroes[1]);
                 DestroyImmediate(upgradeHeroes[2]);
-            }
 
-            Owner.HeroesOnBoard.RemoveAll(item => item == null);
-            Owner.HeroesOnBench.RemoveAll(item => item == null);
+                Owner.HeroesOnBoard.RemoveAll(item => item == null);
+                Owner.HeroesOnBench.RemoveAll(item => item == null);
+
+                upgradeHeroes[0].GetComponent<Hero>().Combine();
+            }
         }
     }
 

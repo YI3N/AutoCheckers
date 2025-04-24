@@ -41,7 +41,7 @@ public class Management
 
         Debug.Log($"[Management: {owner.Tag}] Danger: {selfDanger} | Opponent: {opponentDanger} | MAD: {mad}");
 
-        if (opponentDanger > selfDanger + mad || selfDanger < opponentDanger)
+        if (opponentDanger >= selfDanger + mad || selfDanger <= opponentDanger)
         {
             Debug.Log($"[Management: {owner.Tag}] Предсказание: проигрыш");
             ActOnLoosePrediction();
@@ -56,7 +56,7 @@ public class Management
     private void ActOnWinPrediction()
     {
         shouldTryToWin = false;
-        FreeMoney = owner.Money >= 50 ? owner.Money - 50 : owner.Money > 10 ? owner.Money % 10 + 1 : owner.Money % 10;
+        FreeMoney = owner.Money >= 50 ? owner.Money - 50 : owner.Money % 11;
 
         Debug.Log($"[Management: {owner.Tag}] Стратегия на победу. FreeMoney: {FreeMoney}");
 
@@ -80,7 +80,7 @@ public class Management
         }
         else if (damageRation >= 0.20)
         {
-            FreeMoney = owner.Money >= 50 ? owner.Money - 50 : owner.Money % 20;
+            FreeMoney = owner.Money > 50 ? owner.Money - 50 : owner.Money % 21;
             shouldTryToWin = true;
             Debug.Log($"[Management: {owner.Tag}] Высокий урон. Агрессивная защита. FreeMoney: {FreeMoney}");
         }
@@ -88,7 +88,7 @@ public class Management
         {
             int possibleWinBonus = Mathf.Clamp((owner.WinStreak + 1) / 3, 0, 3) + 1;
 
-            FreeMoney = owner.Money >= 50 ? owner.Money - 50 : owner.Money % 10;
+            FreeMoney = owner.Money > 50 ? owner.Money - 50 : owner.Money % 11;
             shouldTryToWin = FreeMoney >= possibleWinBonus;
             Debug.Log($"[Management: {owner.Tag}] Умеренный риск. FreeMoney: {FreeMoney}, TryToWin: {shouldTryToWin}");
         }
@@ -121,7 +121,13 @@ public class Management
         shop = shop.OrderByDescending(item =>
         {
             HeroCard heroCard = item.GetComponent<HeroCard>();
-            float heroWeight = analytics.HeroBuyPriorities[heroCard.HeroPrefab.name];
+            float heroWeight = 0;
+
+            if (analytics.HeroBuyPriorities.ContainsKey(heroCard.HeroPrefab.name))
+            {
+                heroWeight = analytics.HeroBuyPriorities[heroCard.HeroPrefab.name];
+            }
+
             return heroWeight;
         }).ToList();
 
@@ -129,7 +135,16 @@ public class Management
         {
             HeroCard heroCard = item.GetComponent<HeroCard>();
             Hero hero = heroCard.HeroPrefab.GetComponent<Hero>();
-            float heroWeight = analytics.HeroBuyPriorities[heroCard.HeroPrefab.name];
+
+            float heroWeight = 0;
+
+            if (analytics.HeroBuyPriorities.ContainsKey(heroCard.HeroPrefab.name))
+            {
+                heroWeight = analytics.HeroBuyPriorities[heroCard.HeroPrefab.name];
+            }
+
+            if (heroWeight > 4)
+                continue;
 
             Debug.Log($"[Management: {owner.Tag}] Анализ героя: {hero.name} | Weight: {heroWeight} | Cost: {hero.Cost} | FreeMoney: {FreeMoney}");
 

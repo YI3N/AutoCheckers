@@ -25,13 +25,13 @@ public class Player
 
     public int MaxHealth { get; private set; } = 100;
     public int CurrentHealth { get; private set; } = 100;
-    public int Level { get; private set; } = 1;
+    public int Level { get; private set; } = 7;
     public int Exp { get; private set; } = 0;
     public int MaxExp
     {
         get {  return exps[Mathf.Clamp(Level, 1, exps.Length - 1)]; }
     }
-    public int Money { get; private set; } = 5;
+    public int Money { get; private set; } = 100;
     public int WinStreak { get; private set; } = 0;
     public int Wins { get; private set; } = 0;
     public int Losses { get; private set; } = 0;
