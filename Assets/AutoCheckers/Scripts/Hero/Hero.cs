@@ -448,12 +448,20 @@ public class Hero : MonoBehaviour
         TriggerOnAttackEvents();
     }
 
+    public void PhysicalAttack(Hero enemy, int damage)
+    {
+        DamageDealt += enemy.OnHit(damage, GameTag.Physical);
+        AttackStatistics += DamageDealt;
+
+        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+    }
+
     public void MagicalAttack(Hero enemy, int damage)
     {
         DamageDealt += enemy.OnHit(damage, GameTag.Magical);
         AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
+        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
     }
 
     public void PureAttack(Hero enemy, int damage)
@@ -461,7 +469,7 @@ public class Hero : MonoBehaviour
         DamageDealt += enemy.OnHit(damage, GameTag.Pure);
         AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 10));
+        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
     }
 
     public void AbsorbDamage(int damage)

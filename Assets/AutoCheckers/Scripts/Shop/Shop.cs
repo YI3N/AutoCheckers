@@ -121,9 +121,9 @@ public class Shop : MonoBehaviour
     public void UpdateChances(Player player)
     {
         if (player.Tag == GameTag.Human)
-            humanChances.SetChances(chances[player.Level]);
+            humanChances.SetChances(chances[player.Level - 1]);
         else if (player.Tag == GameTag.AI)
-            aiChances.SetChances(chances[player.Level]);
+            aiChances.SetChances(chances[player.Level - 1]);
     }
 
     private void AddHeroToPull(Hero hero)
@@ -248,7 +248,7 @@ public class Shop : MonoBehaviour
         {
             if (renderPoints[i].transform.childCount < 2)
             {
-                List<GameObject> randomList = GetRandomHeroList(player.Level);
+                List<GameObject> randomList = GetRandomHeroList(player.Level-1);
                 if (randomList == null)
                     break;
 
@@ -347,7 +347,7 @@ public class Shop : MonoBehaviour
 
     public float GetCurrentRaritySpawnChance(int level, Rarity rarity)
     {
-        return chances[level][((int)rarity)];
+        return chances[level - 1][((int)rarity)];
     }
 
     public List<GameObject> GetHeroRarityList(Rarity rarity)
