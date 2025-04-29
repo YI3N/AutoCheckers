@@ -14,11 +14,10 @@ public class Player
     public List<GameObject> HeroesOnBoard { get; private set; } = new List<GameObject>();
     public List<GameObject> HeroesOnBench { get; private set; } = new List<GameObject>();
     public BoardCell[] Bench { get; private set; } = new BoardCell[8];
-    public Dictionary<HeroClass, int> ClassHeroes { get;  set; } = new Dictionary<HeroClass, int>();
-    public Dictionary<Race, int> RaceHeroes { get;  set; } = new Dictionary<Race, int>();
-
-    public Dictionary<HeroClass, int> BenchClasses { get; set; } = new Dictionary<HeroClass, int>();
-    public Dictionary<Race, int> BenchRaces { get; set; } = new Dictionary<Race, int>();
+    public Dictionary<HeroClass, int> ClassHeroes { get; private set; } = new Dictionary<HeroClass, int>();
+    public Dictionary<Race, int> RaceHeroes { get; private set; } = new Dictionary<Race, int>();
+    public Dictionary<HeroClass, int> BenchClasses { get; private set; } = new Dictionary<HeroClass, int>();
+    public Dictionary<Race, int> BenchRaces { get; private set; } = new Dictionary<Race, int>();
 
     public GameTag Tag { get; private set; }
     public int FightHeroes { get; private set; } = 0;

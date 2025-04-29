@@ -10,21 +10,26 @@ public class Tactics
     private Player owner;
     private Player opponent;
 
+    private Analytics analytics;
+
     private int[,] dangerBoard = new int[8, 8];
 
     private List<Hero> battleHeroes = new List<Hero>();
     private List<Hero> benchHeroes = new List<Hero>();
 
-    public Tactics(Player player)
+    public Tactics(Analytics analytics)
     {
-        owner = player;
-        opponent = owner.Tag == GameTag.Human ? GameManager.instance.AI : GameManager.instance.Human;
+        this.analytics = analytics;
+
+        owner = analytics.State.Owner;
+        opponent = analytics.State.Opponent;
     }
 
     public void CreateTactic(Dictionary<string, float> battlePriority)
     {
         SetDangerBoard();
         SetHeroes(battlePriority);
+        MoveHeroesToBench(benchHeroes);
         SetBattleOrder(battlePriority);
     }
 
@@ -91,41 +96,40 @@ public class Tactics
             if (!battleHeroes.Contains(hero))
                 benchHeroes.Add(hero);
         }
-
-        MoveHeroesToBoard(battleHeroes);
-        MoveHeroesToBench(benchHeroes);
-    }
-
-    private void MoveHeroesToBoard(List<Hero> heroes)
-    {
-        int row = owner.Tag == GameTag.Human ? 0 : 7;
-        int col = 0;
-
-        foreach (Hero hero in heroes)
-        {
-            BoardCell cell = Board.instance.GetCell(row, col);
-            hero.SetStartCell(cell);
-
-            if (col > 7)
-            {
-                row += owner.Tag == GameTag.Human ? 1 : -1;
-                col = 0;
-            }
-            else
-                col++;
-        }
     }
 
     private void MoveHeroesToBench(List<Hero> heroes)
     {
-        int i = 0;
-
         foreach (Hero hero in heroes)
         {
-            BoardCell cell = owner.Bench[i];
-            hero.SetStartCell(cell);
-            i++;
+            if (!owner.HeroesOnBench.Contains(hero.gameObject))
+                analytics.AddTacticsAction(() => SetToBench(hero));
         }
+    }
+
+    private void SetToBench(Hero hero)
+    {
+        foreach (BoardCell cell in owner.Bench)
+        {
+            if (!cell.IsOccupied)
+            {
+                hero.SetStartCell(cell);
+                break;
+            }
+            else if (battleHeroes.Contains(cell.OccupiedHero))
+            {
+                SwapHeroes(hero, cell.OccupiedHero);
+                break;
+            }
+        }
+    }
+
+    private void SetToBoard(Hero hero, BoardCell targetCell)
+    {
+        if (targetCell.IsOccupied && hero.StartCell != targetCell)
+            SwapHeroes(hero, targetCell.OccupiedHero);
+        else if (!targetCell.IsOccupied && hero.StartCell != targetCell)
+            hero.SetStartCell(targetCell);
     }
 
     private void SetBattleOrder(Dictionary<string, float> battlePriority)
@@ -137,13 +141,15 @@ public class Tactics
 
         foreach (KeyValuePair<string, float> kvp in priority)
         {
-            GameObject piece = owner.HeroesOnBoard.FirstOrDefault(piece => piece.GetComponent<Hero>().name == kvp.Key);
-            Hero hero = piece.GetComponent<Hero>();
+            Hero hero = battleHeroes.FirstOrDefault(piece => piece.GetComponent<Hero>().name == kvp.Key);
+
+            if (hero == null)
+                continue;
 
             if (hero.AttackRange == 1)
-                SetMeleePosition(hero, target, neighbor);
+                analytics.AddTacticsAction(() => SetMeleePosition(hero, target, neighbor));
             else
-                SetRangedPosition(hero, target, neighbor);
+                analytics.AddTacticsAction(() => SetRangedPosition(hero, target, neighbor));
         }
     }
 
@@ -173,7 +179,9 @@ public class Tactics
             }
         }
 
-        hero.SetStartCell(Board.instance.GetCell((int)bestCell.x, (int)bestCell.y));
+        BoardCell targetCell = Board.instance.GetCell((int)bestCell.x, (int)bestCell.y);
+
+        SetToBoard(hero, targetCell);
     }
 
     private void SetRangedPosition(Hero hero, Vector2 target, Vector2 neighbor)
@@ -204,7 +212,17 @@ public class Tactics
             }
         }
 
-        hero.SetStartCell(Board.instance.GetCell((int)bestCell.x, (int)bestCell.y));
+        BoardCell targetCell = Board.instance.GetCell((int)bestCell.x, (int)bestCell.y);
+
+        SetToBoard(hero, targetCell);
+    }
+
+    private void SwapHeroes(Hero hero1, Hero hero2)
+    {
+        BoardCell switchCell = hero1.CurrentCell;
+
+        hero1.SetStartCell(hero2.CurrentCell);
+        hero2.SetStartCell(switchCell);
     }
 
     private List<Vector2> GetFreeCellsForMelee()

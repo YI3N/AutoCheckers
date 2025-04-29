@@ -4,31 +4,26 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.SocialPlatforms;
 
 public class Management
 {
-    private Player owner;
-    private Player opponent;
-
     private Analytics analytics;
     private Tactics tactics;
 
-    private bool shouldTryToWin;
-    public int FreeMoney { get; private set; }
+    private Player owner;
+    private Player opponent;
 
-    public Management(Player player)
+    private PlayerState state;
+    private float damageThreshold = 0.2f;
+
+    public Management(Analytics analytics)
     {
-        owner = player;
-        opponent = owner.Tag == GameTag.Human ? GameManager.instance.AI : GameManager.instance.Human;
+        this.analytics = analytics;
+        tactics = analytics.Tactics;
+        state = analytics.State;
 
-        analytics = new Analytics(owner);
-        tactics = new Tactics(owner);
-    }
-
-    public void PredictIncome()
-    {
-        float guarantyIncome = Mathf.Clamp(owner.Money / 10, 0, 5);
+        owner = analytics.State.Owner;
+        opponent = analytics.State.Opponent;
     }
 
     public void PredictBattleOutcome()
@@ -39,26 +34,24 @@ public class Management
         float opponentDanger = analytics.DangerPlayers[opponent.Tag.ToString()];
         float mad = analytics.CalculateMAD();
 
-        Debug.Log($"[Management: {owner.Tag}] Danger: {selfDanger} | Opponent: {opponentDanger} | MAD: {mad}");
+        Debug.Log($"[Analytics:{owner.Tag}] Danger: {selfDanger} | Opponent: {opponentDanger} | MAD: {mad}");
 
         if (opponentDanger >= selfDanger + mad || selfDanger <= opponentDanger)
         {
-            Debug.Log($"[Management: {owner.Tag}] Предсказание: проигрыш");
+            Debug.Log($"[Analytics:{owner.Tag}] Предсказание: проигрыш");
             ActOnLoosePrediction();
         }
         else
         {
-            Debug.Log($"[Management: {owner.Tag}] Предсказание: победа");
+            Debug.Log($"[Analytics:{owner.Tag}] Предсказание: победа");
             ActOnWinPrediction();
         }
     }
 
     private void ActOnWinPrediction()
     {
-        shouldTryToWin = false;
-        FreeMoney = owner.Money >= 50 ? owner.Money - 50 : owner.Money % 11;
-
-        Debug.Log($"[Management: {owner.Tag}] Стратегия на победу. FreeMoney: {FreeMoney}");
+        state.SetFreeMoney(owner.Money >= 50 ? owner.Money - 50 : owner.Money > 10 ? owner.Money % 11 : 0);
+        Debug.Log($"[Management: {owner.Tag}] Стратегия на победу. FreeMoney: {state.FreeMoney}");
 
         ExecuteRoundStrategy();
     }
@@ -70,27 +63,25 @@ public class Management
 
         Debug.Log($"[Management: {owner.Tag}] Потенциальный урон: {possibleDamage}, доля урона: {damageRation}");
 
-        shouldTryToWin = false;
-
         if (owner.CurrentHealth - possibleDamage <= 0)
         {
             Debug.Log($"[Management: {owner.Tag}] Срочная защита. Все деньги на игру.");
-            FreeMoney = owner.Money;
-            shouldTryToWin = true;
+            state.SetFreeMoney(owner.Money);
+            state.SetShouldWin(true);
         }
-        else if (damageRation >= 0.20)
+        else if (damageRation >= damageThreshold)
         {
-            FreeMoney = owner.Money > 50 ? owner.Money - 50 : owner.Money % 21;
-            shouldTryToWin = true;
-            Debug.Log($"[Management: {owner.Tag}] Высокий урон. Агрессивная защита. FreeMoney: {FreeMoney}");
+            state.SetFreeMoney(owner.Money > 50 ? owner.Money - 50 : owner.Money % 21);
+            state.SetShouldWin(true);
+            Debug.Log($"[Management: {owner.Tag}] Высокий урон. Агрессивная защита. FreeMoney: {state.FreeMoney}");
         }
         else
         {
             int possibleWinBonus = Mathf.Clamp((owner.WinStreak + 1) / 3, 0, 3) + 1;
 
-            FreeMoney = owner.Money > 50 ? owner.Money - 50 : owner.Money % 11;
-            shouldTryToWin = FreeMoney >= possibleWinBonus;
-            Debug.Log($"[Management: {owner.Tag}] Умеренный риск. FreeMoney: {FreeMoney}, TryToWin: {shouldTryToWin}");
+            state.SetFreeMoney(owner.Money > 50 ? owner.Money - 50 : owner.Money % 11);
+            state.SetShouldWin(state.FreeMoney >= possibleWinBonus);
+            Debug.Log($"[Management: {owner.Tag}] Умеренный риск. FreeMoney: {state.FreeMoney}, ShouldWin: {state.ShouldWin}");
         }
 
         ExecuteRoundStrategy();
@@ -102,13 +93,8 @@ public class Management
 
         TryBuyLevel();
 
-        if (TryReroll())
-            ExecuteRoundStrategy();
-        else
+        if (!TryReroll())
             TryLockShop();
-
-        analytics.SetBattlePriorities();
-        tactics.CreateTactic(analytics.HeroBattlePriorities);
     }
 
     private void TryBuyHeroes()
@@ -133,55 +119,49 @@ public class Management
 
         foreach (GameObject item in shop)
         {
-            HeroCard heroCard = item.GetComponent<HeroCard>();
-            Hero hero = heroCard.HeroPrefab.GetComponent<Hero>();
+            HeroCard shopCard = item.GetComponent<HeroCard>();
+            Hero shopHero = shopCard.HeroPrefab.GetComponent<Hero>();
 
             float heroWeight = 0;
 
-            if (analytics.HeroBuyPriorities.ContainsKey(heroCard.HeroPrefab.name))
+            if (analytics.HeroBuyPriorities.ContainsKey(shopCard.HeroPrefab.name))
             {
-                heroWeight = analytics.HeroBuyPriorities[heroCard.HeroPrefab.name];
+                heroWeight = analytics.HeroBuyPriorities[shopCard.HeroPrefab.name];
             }
 
             if (heroWeight > 4)
                 continue;
 
-            Debug.Log($"[Management: {owner.Tag}] Анализ героя: {hero.name} | Weight: {heroWeight} | Cost: {hero.Cost} | FreeMoney: {FreeMoney}");
+            Debug.Log($"[Management: {owner.Tag}] Анализ героя: {shopHero.name} | Weight: {heroWeight} | Cost: {shopHero.Cost} | FreeMoney: {state.FreeMoney}");
 
-            if (heroWeight > analytics.WeakestWeight)
+            if (heroWeight > state.WeakestWeight)
             {
-                Debug.Log($"[Management: {owner.Tag}] {hero.name} выше самого слабого героя ({analytics.WeakestWeight})");
+                Debug.Log($"[Management: {owner.Tag}] {shopHero.name} выше самого слабого героя ({state.WeakestWeight})");
 
-                if (analytics.FreeSpace > 0 && FreeMoney >= hero.Cost)
+                if (state.FreeSpace > 0 && state.FreeMoney >= shopHero.Cost)
                 {
                     Debug.Log($"[Management: {owner.Tag}] Есть свободное место и достаточно золота. Покупаем.");
-                    BuyHero(heroCard, -1);
+                    BuyHero(shopCard, -1);
                 }
                 else
                 {
-                    List<GameObject> heroes = owner.HeroesOnBoard.Concat(owner.HeroesOnBench).ToList();
                     int count = 1;
-
-                    foreach (GameObject piece in heroes)
+                    foreach (Hero hero in state.AllHeroes)
                     {
-                        if (hero.ID == piece.GetComponent<Hero>().ID && hero.Upgrades == piece.GetComponent<Hero>().Upgrades)
+                        if (shopHero.ID == hero.ID && shopHero.Upgrades == hero.Upgrades)
                         {
                             count++;
-                            if (count >= hero.CombineThreshold)
+                            if (count >= shopHero.CombineThreshold)
                                 break;
                         }
                     }
 
-                    if (FreeMoney < hero.Cost)
+                    if (state.FreeMoney < shopHero.Cost)
                     {
-                        List<Hero> benchHeroes = owner.HeroesOnBench
-                            .Select(h => h.GetComponent<Hero>())
-                            .OrderBy(h => h.Level)
-                            .ToList();
-
+                        List<Hero> benchHeroes = state.HeroesOnBench.OrderBy(h => h.Level).ToList();
                         int totalCost = benchHeroes.Sum(h => h.Level);
 
-                        if (totalCost >= hero.Cost)
+                        if (totalCost >= shopHero.Cost)
                         {
                             Debug.Log($"[Management: {owner.Tag}] Недостаточно золота. Пробуем продать героев с лавки.");
                             foreach (Hero sellHero in benchHeroes)
@@ -190,92 +170,93 @@ public class Management
                                     continue;
 
                                 float sellHeroDifference = analytics.CountDuplicateFactorLoss(sellHero);
-                                float heroDifference = analytics.CountDuplicateFactorGain(hero);
+                                float heroDifference = analytics.CountDuplicateFactorGain(shopHero);
 
                                 Debug.Log($"[Management: {owner.Tag}] Кандидат на продажу: {sellHero.name} | Разница: {sellHeroDifference:F2} vs {heroDifference:F2}");
 
                                 if (sellHeroDifference <= heroDifference)
                                 {
-                                    Debug.Log($"[Management: {owner.Tag}] Продаем {sellHero.name} ради {hero.name}.");
+                                    Debug.Log($"[Management: {owner.Tag}] Продаем {sellHero.name} ради {shopHero.name}.");
                                     SellHero(sellHero);
                                 }
 
-                                if (FreeMoney >= hero.Cost)
+                                if (state.FreeMoney >= shopHero.Cost)
                                 {
-                                    BuyHero(heroCard, -1);
+                                    BuyHero(shopCard, -1);
                                     break;
                                 }
                             }
                         }
                     }
-                    else if (count >= hero.CombineThreshold)
+                    else if (count >= shopHero.CombineThreshold)
                     {
-                        Debug.Log($"[Management: {owner.Tag}] Достигнут порог комбинации ({count} / {hero.CombineThreshold}). Покупаем.");
-                        BuyHero(heroCard, 2);
+                        Debug.Log($"[Management: {owner.Tag}] Достигнут порог комбинации ({count} / {shopHero.CombineThreshold}). Покупаем.");
+                        BuyHero(shopCard, 2);
                     }
-                    else if (analytics.FreeSpace <= 0)
+                    else if (state.FreeSpace <= 0)
                     {
                         Debug.Log($"[Management: {owner.Tag}] Нет свободного места. Пробуем заменить слабого героя.");
 
-                        List<Hero> weakHeroes = analytics.BoughtWeakHeroes.OrderBy(h => h.Level).ToList();
-                        Hero weakHero = weakHeroes[0];
+                        Hero weakHero = state.WeakHeroes[0];
 
                         float weakHeroDifference = analytics.CountDuplicateFactorLoss(weakHero);
-                        float heroDifference = analytics.CountDuplicateFactorGain(hero);
+                        float heroDifference = analytics.CountDuplicateFactorGain(shopHero);
 
                         if (weakHeroDifference <= heroDifference)
                         {
-                            Debug.Log($"[Management: {owner.Tag}] Продаем {weakHero.name} ради {hero.name}.");
+                            Debug.Log($"[Management: {owner.Tag}] Продаем {weakHero.name} ради {shopHero.name}.");
                             SellHero(weakHero);
                         }
 
-                        if (FreeMoney >= hero.Cost)
+                        if (state.FreeMoney >= shopHero.Cost)
                         {
-                            BuyHero(heroCard, -1);
+                            BuyHero(shopCard, -1);
                             break;
                         }
                     }
                 }
             }
-            else if (heroWeight == analytics.WeakestWeight && analytics.FreeSpace > 0 && FreeMoney >= hero.Cost)
+            else if (heroWeight == state.WeakestWeight && state.FreeSpace > 0 && state.FreeMoney >= shopHero.Cost)
             {
-                Debug.Log($"[Management: {owner.Tag}] {hero.name} равен по весу слабейшему ({analytics.WeakestWeight}), но есть место и золото. Покупаем.");
-                BuyHero(heroCard, -1);
+                Debug.Log($"[Management: {owner.Tag}] {shopHero.name} равен по весу слабейшему ({state.WeakestWeight}), но есть место и золото. Покупаем.");
+                BuyHero(shopCard, -1);
             }
-            else if (analytics.UniqueHeroes <= owner.Level && FreeMoney >= hero.Cost)
+            else if (state.UniqueHeroes <= owner.Level && state.FreeMoney >= shopHero.Cost)
             {
-                Debug.Log($"[Management: {owner.Tag}] Число уникальных героев не больше уровня ({analytics.UniqueHeroes} <= {owner.Level}). Берем {hero.name} ради разнообразия.");
-                BuyHero(heroCard, -1);
+                Debug.Log($"[Management: {owner.Tag}] Число уникальных героев не больше уровня ({state.UniqueHeroes} <= {owner.Level}). Берем {shopHero.name} ради разнообразия.");
+                BuyHero(shopCard, -1);
             }
             else
             {
-                Debug.Log($"[Management: {owner.Tag}] Пропущен {hero.name}. Вес: {heroWeight}, Свободное место: {analytics.FreeSpace}, Золото: {FreeMoney}");
+                Debug.Log($"[Management: {owner.Tag}] Пропущен {shopHero.name}. Вес: {heroWeight}, Свободное место: {state.FreeSpace}, Золото: {state.FreeMoney}");
             }
         }
     }
 
     private void TryBuyLevel()
     {
-        if (analytics.UniqueHeroes > owner.Level || owner.Level < opponent.Level)
+        if (state.UniqueHeroes > owner.Level || owner.Level < opponent.Level)
         {
-            if (FreeMoney >= Shop.instance.EXPCost)
+            if (state.FreeMoney >= Shop.instance.EXPCost)
             {
-                while (FreeMoney >= Shop.instance.EXPCost)
+                while (state.FreeMoney >= Shop.instance.EXPCost)
                 {
-                    FreeMoney -= Shop.instance.EXPCost;
-                    Shop.instance.BuyEXP(owner.Tag);
-                    Debug.Log($"[Management: {owner.Tag}] Покупка EXP напрямую. Остаток: {FreeMoney}");
-
-                    if (analytics.UniqueHeroes <= owner.Level || owner.Level >= opponent.Level)
+                    state.ChangeFreeMoney(-Shop.instance.EXPCost);
+                    Debug.Log($"[Management: {owner.Tag}] Покупка EXP напрямую. Остаток: {state.FreeMoney}");
+                    analytics.AddManagementAction(() =>
+                    {
+                        Shop.instance.BuyEXP(owner.Tag);
+                    });
+                    if (state.UniqueHeroes <= owner.Level || owner.Level >= opponent.Level)
                         break;
                 }
             }
             else
             {
-                int neededGold = Shop.instance.EXPCost - FreeMoney;
+                int neededGold = Shop.instance.EXPCost - state.FreeMoney;
 
-                List<Hero> potentialSellers = analytics.BoughtWeakHeroes.Where(h =>
-                    h.CurrentCell.tag != nameof(GameTag.Board) && owner.HeroesOnBoard.Contains(h.gameObject))
+                List<Hero> potentialSellers = state.WeakHeroes.Where(h =>
+                    state.HeroesOnBench.Contains(h) && state.IsHeroOnBoard(h))
                     .OrderBy(h => h.Level).ToList();
 
                 int accumulatedGold = 0;
@@ -297,9 +278,12 @@ public class Management
                         SellHero(heroToSell);
                     }
 
-                    FreeMoney -= Shop.instance.EXPCost;
-                    Shop.instance.BuyEXP(owner.Tag);
-                    Debug.Log($"[Management: {owner.Tag}] Покупка EXP через продажу слабых героев. Остаток: {FreeMoney}");
+                    state.ChangeFreeMoney(-Shop.instance.EXPCost);
+                    Debug.Log($"[Management: {owner.Tag}] Покупка EXP через продажу слабых героев. Остаток: {state.FreeMoney}");
+                    analytics.AddManagementAction(() =>
+                    {
+                        Shop.instance.BuyEXP(owner.Tag);
+                    });
                 }
             }
         }
@@ -307,13 +291,17 @@ public class Management
 
     private bool TryReroll()
     {
-        if (FreeMoney > Shop.instance.RerollCost)
+        if (state.FreeMoney > Shop.instance.RerollCost)
         {
-            FreeMoney -= Shop.instance.RerollCost;
-            Shop.instance.RerollShop(owner.Tag, true);
+            state.ChangeFreeMoney(-Shop.instance.RerollCost);
 
-            Debug.Log($"[Management: {owner.Tag}] Реролл магазина. Остаток: {FreeMoney}");
+            Debug.Log($"[Management: {owner.Tag}] Реролл магазина. Остаток: {state.FreeMoney}");
 
+            analytics.AddManagementAction(() =>
+            {
+                Shop.instance.RerollShop(owner.Tag, true);
+                ExecuteRoundStrategy();
+            });
             return true;
         }
 
@@ -336,25 +324,33 @@ public class Management
 
     private void BuyHero(HeroCard heroCard, int spaceDifference)
     {
-        Hero hero = heroCard.HeroPrefab.GetComponent<Hero>();
+        Hero targetHero = heroCard.HeroPrefab.GetComponent<Hero>();
 
-        analytics.SetFreeSpace(spaceDifference);
-        FreeMoney -= hero.Cost;
+        state.ChangeFreeSpace(spaceDifference);
+        state.ChangeFreeMoney(-targetHero.Cost);
+        state.AddBuyHero(heroCard);
 
-        Debug.Log($"[Management: {owner.Tag}] Куплен герой: {hero.name} за {hero.Cost} золота. Остаток: {FreeMoney}");
+        Debug.Log($"[Management: {owner.Tag}] Куплен герой: {targetHero.name} за {targetHero.Cost} золота. Остаток: {state.FreeMoney}");
 
-        heroCard.PurchaceHero(owner.Tag);
         analytics.SetBuyPriorities();
+        analytics.AddManagementAction(() =>
+        {
+            heroCard.PurchaceHero(owner.Tag);
+        });
     }
 
     private void SellHero(Hero hero)
     {
-        analytics.SetFreeSpace(1);
-        FreeMoney += hero.Level;
+        state.ChangeFreeSpace(1);
+        state.ChangeFreeMoney(hero.Level);
+        state.AddSellHero(hero);
 
-        Debug.Log($"[Management: {owner.Tag}] Продан герой: {hero.name} за {hero.Level} золота. Итого: {FreeMoney}");
+        Debug.Log($"[Management: {owner.Tag}] Продан герой: {hero.name} за {hero.Level} золота. Итого: {state.FreeMoney}");
 
-        Shop.instance.SellHero(hero, owner);
         analytics.SetBuyPriorities();
+        analytics.AddManagementAction(() =>
+        {
+            Shop.instance.SellHero(hero, owner);
+        });
     }
 }

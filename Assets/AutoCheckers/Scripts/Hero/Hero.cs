@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using System.Linq;
 using System;
 using Random = UnityEngine.Random;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class Hero : MonoBehaviour
 {
@@ -440,36 +441,48 @@ public class Hero : MonoBehaviour
 
     private void Attack()
     {
-        DamageDealt += TargetEnemy.OnHit(Damage, GameTag.Physical);
-        AttackStatistics += DamageDealt;
+        if (TargetEnemy != null)
+        {
+            DamageDealt += TargetEnemy.OnHit(Damage, GameTag.Physical);
+            AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+            GainMana(Mathf.Clamp(DamageDealt, 0, 50));
 
-        TriggerOnAttackEvents();
+            TriggerOnAttackEvents();
+        }
     }
 
     public void PhysicalAttack(Hero enemy, int damage)
     {
-        DamageDealt += enemy.OnHit(damage, GameTag.Physical);
-        AttackStatistics += DamageDealt;
+        if (enemy != null)
+        {
+            DamageDealt += enemy.OnHit(damage, GameTag.Physical);
+            AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+            GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+        }
     }
 
     public void MagicalAttack(Hero enemy, int damage)
     {
-        DamageDealt += enemy.OnHit(damage, GameTag.Magical);
-        AttackStatistics += DamageDealt;
+        if (enemy != null)
+        {
+            DamageDealt += enemy.OnHit(damage, GameTag.Magical);
+            AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+            GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+        }
     }
 
     public void PureAttack(Hero enemy, int damage)
     {
-        DamageDealt += enemy.OnHit(damage, GameTag.Pure);
-        AttackStatistics += DamageDealt;
+        if (enemy != null)
+        {
+            DamageDealt += enemy.OnHit(damage, GameTag.Pure);
+            AttackStatistics += DamageDealt;
 
-        GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+            GainMana(Mathf.Clamp(DamageDealt, 0, 50));
+        }
     }
 
     public void AbsorbDamage(int damage)

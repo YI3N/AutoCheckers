@@ -44,6 +44,10 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private TMP_Text round;
     [SerializeField]
+    private Slider timerBar;
+    [SerializeField]
+    private TMP_Text timer;
+    [SerializeField]
     private TMP_Text sellPrice;
 
     [SerializeField]
@@ -72,7 +76,7 @@ public class UIManager : MonoBehaviour
         statisticsPanel.SetActive(true);
 
         playButton.onClick.AddListener(BeginGame);
-        startButton.onClick.AddListener(StartRound);
+        //startButton.onClick.AddListener(StartRound);
 
         shopOpenButton.onClick.AddListener(OpenShop);
         shopCloseButton.onClick.AddListener(CloseShop);
@@ -83,6 +87,12 @@ public class UIManager : MonoBehaviour
         playersUI.SetActive(false);
         shopUI.SetActive(false);
         statisticsPanel.SetActive(false);
+    }
+
+    public void UpdateTimer(float time)
+    {
+        timer.text = time.ToString("0");
+        timerBar.value = time / GameManager.instance.pauseDelay;
     }
 
     public void UpdatePlayerUI(Player player)
@@ -114,11 +124,13 @@ public class UIManager : MonoBehaviour
         GameManager.instance.BeginGame();
     }
 
-    private void StartRound()
+    public void StartRound()
     {
+        CloseShop();
         AIZone.SetActive(false);
         pauseUI.SetActive(false);
         statisticsPanel.SetActive(false);
+        timerBar.gameObject.SetActive(false);
 
         GameManager.instance.StartRound();
     }
@@ -129,6 +141,7 @@ public class UIManager : MonoBehaviour
         pauseUI.SetActive(true);
         AIZone.SetActive(true);
         statisticsPanel.SetActive(true);
+        timerBar.gameObject.SetActive(true);
     }
 
     private void OpenShop()

@@ -6,12 +6,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEditor.Playables;
 using UnityEngine;
+using UnityEngine.Analytics;
 
 public class Analytics
 {
-    private Player owner;
-    private Player opponent;
-
     private readonly float[] duplicateFactors = new float[] { 0, 0.125f, 0.375f, 0.25f, 0.5f, 0.75f, 0.625f, 0.875f, 1f, 4f };
     private static readonly float[] ability3_6Factors = new float[] { 0, 0.17f, 0.5f, 0.33f, 0.67f, 1f, 0.83f };
     private static readonly float[] ability2_4Factors = new float[] { 0, 0.5f, 0.25f, 1f, 0.75f };
@@ -25,33 +23,52 @@ public class Analytics
         {(2, 2), ability2_2Factors}
     };
 
-    public int FreeSpace { get; private set; }
-    public int UniqueHeroes { get; private set; }
-    public float WeakestWeight { get; private set; }
-    public List<Hero> BoughtWeakHeroes { get; private set; } = new List<Hero>();
+    public PlayerState State { get; private set; }
     public Dictionary<string, float> HeroBuyPriorities { get; private set; } = new Dictionary<string, float>();
     public Dictionary<string, float> HeroBattlePriorities { get; private set; } = new Dictionary<string, float>();
     public Dictionary<string, float> DangerPlayers { get; private set; } = new Dictionary<string, float>();
 
+    public Queue<Action> ManagementActions { get; private set; } = new Queue<Action>();
+    public Queue<Action> TacticsActions { get; private set; } = new Queue<Action>();
+
+    private Player owner;
+    private Player opponent;
+
+    private Management management;
+    public Tactics Tactics { get; private set; }
+    public bool gotTactics = false;
+
     public Analytics(Player player)
     {
-        owner = player;
-        opponent = owner.Tag == GameTag.Human ? GameManager.instance.AI : GameManager.instance.Human;
+        State = new PlayerState(player);
+        management = new Management(this);
+        Tactics = new Tactics(this);
+
+        owner = State.Owner;
+        opponent = State.Opponent;
     }
 
-    public void SetFreeSpace(int amount)
+    public void StartThinking()
     {
-        FreeSpace += amount;
-        Debug.Log($"[Analytics:{owner.Tag}] Свободное место изменено на {amount}, теперь {FreeSpace}");
+        ManagementActions.Clear();
+        State.ResetState();
+        management.PredictBattleOutcome();
+    }
+
+    public void CreateTactics()
+    {
+        gotTactics = true;
+        TacticsActions.Clear();
+        SetBattlePriorities();
+        Tactics.CreateTactic(HeroBattlePriorities);
     }
 
     public void SetDangerPlayers()
     {
         DangerPlayers.Clear();
 
-        // -1
-        float ownerDanger = owner.Wins / (float)(GameManager.instance.Round);
-        float opponentDanger = opponent.Wins / (float)(GameManager.instance.Round);
+        float ownerDanger = owner.Wins / (float)(GameManager.instance.Round); // -1?
+        float opponentDanger = opponent.Wins / (float)(GameManager.instance.Round); // -1?
 
         Debug.Log($"[Analytics:{owner.Tag}] Опасность игроков - Свой: {ownerDanger:F2}, Оппонент: {opponentDanger:F2}");
 
@@ -73,10 +90,9 @@ public class Analytics
     public void SetBattlePriorities()
     {
         HeroBattlePriorities.Clear();
+        List<Hero> heroes = owner.HeroesOnBoard.Concat(owner.HeroesOnBench).Select(piece => piece.GetComponent<Hero>()).ToList();
 
-        foreach (GameObject piece in owner.HeroesOnBoard.Concat(owner.HeroesOnBench).ToList())
-        {
-            Hero hero = piece.GetComponent<Hero>();
+        foreach (Hero hero in heroes)
             if (!HeroBattlePriorities.ContainsKey(hero.name))
             {
                 float utility = (owner.AttackStatistics == 0 || owner.DefenceStatistics == 0) ? 1 : hero.AttackStatistics / (float)owner.AttackStatistics + hero.DefenceStatistics / (float)owner.DefenceStatistics;
@@ -85,7 +101,6 @@ public class Analytics
 
                 Debug.Log($"[Analytics:{owner.Tag}] Приоритет боя для {hero.name}: {value:F2}");
             }
-        }
 
         HeroBattlePriorities = HeroBattlePriorities.OrderByDescending(kv => kv.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
     }
@@ -94,19 +109,15 @@ public class Analytics
     {
         HeroBuyPriorities.Clear();
 
-        UniqueHeroes = 0;
-        int freeBoardSpace = owner.Level - owner.HeroesOnBoard.Count;
-        int freeBenchSpace = 8 - owner.HeroesOnBench.Count;
-        FreeSpace = freeBoardSpace + freeBenchSpace;
+        State.SetUniqueHeroes(0);
+        int freeBoardSpace = owner.Level - State.HeroesOnBoard.Count;
+        int freeBenchSpace = 8 - State.HeroesOnBench.Count;
+        State.SetFreeSpace(freeBoardSpace + freeBenchSpace);
 
-        Debug.Log($"[Analytics:{owner.Tag}] Свободное место: {FreeSpace}, На поле: {freeBoardSpace}, На скамейке: {freeBenchSpace}");
+        Debug.Log($"[Analytics:{owner.Tag}] Свободное место: {State.FreeSpace}, На поле: {freeBoardSpace}, На скамейке: {freeBenchSpace}");
 
         float minWeight = Mathf.Infinity;
-
-        List<GameObject> boughtHeroes = owner.HeroesOnBoard.Concat(owner.HeroesOnBench).ToList();
-        foreach (GameObject piece in boughtHeroes)
-        {
-            Hero hero = piece.GetComponent<Hero>();
+        foreach (Hero hero in State.AllHeroes)
             if (!HeroBuyPriorities.ContainsKey(hero.name))
             {
                 float heroWeight = CountHeroWeight(hero);
@@ -116,23 +127,22 @@ public class Analytics
 
                 if (heroWeight < minWeight)
                 {
-                    BoughtWeakHeroes.Clear();
-                    BoughtWeakHeroes.Add(hero);
+                    State.ClearWeakHeroes();
+                    State.AddWeakHero(hero);
                     minWeight = heroWeight;
                 }
                 else if (heroWeight == minWeight)
                 {
-                    BoughtWeakHeroes.Add(hero);
+                    State.AddWeakHero(hero);
                 }
 
-                UniqueHeroes++;
+                State.ChangeUniqueHeroes(1);
             }
-        }
 
-        WeakestWeight = minWeight == Mathf.Infinity ? 0 : minWeight;
-        Debug.Log($"[Analytics:{owner.Tag}] Наименьший вес: {WeakestWeight:F2}, Уникальные герои: {UniqueHeroes}");
+        State.SetWeakestWeight(minWeight == Mathf.Infinity ? 0 : minWeight);
+        Debug.Log($"[Analytics:{owner.Tag}] Наименьший вес: {State.WeakestWeight:F2}, Уникальные герои: {State.UniqueHeroes}");
 
-        int amount = UniqueHeroes + freeBoardSpace + freeBenchSpace + 1;
+        int amount = State.UniqueHeroes + freeBoardSpace + freeBenchSpace + 1;
         int freeSpace = amount - HeroBuyPriorities.Count();
 
         Dictionary<string, float> shopPriorities = new Dictionary<string, float>();
@@ -194,20 +204,39 @@ public class Analytics
 
         int heroCount = heroes.Count();
 
+        foreach (GameObject piece in State.HeroesToBuy)
+        {
+            Hero buyHero = piece.GetComponent<Hero>();
+            if (buyHero.ID == hero.ID)
+            {
+                heroDupInShop -= 1;
+                heroDuplicates -= 1;
+                heroCount -= 1;
+            }
+        }
+
+        foreach (GameObject piece in State.HeroesToSell)
+        {
+            Hero sellHero = piece.GetComponent<Hero>();
+            if (sellHero.ID == hero.ID)
+            {
+                heroDuplicates += 1;
+                heroCount += 1;
+            }
+        }
+
         float chance = heroCount == 0 ? 0 : rarityChance * heroDupInShop * heroDuplicates / heroCount;
 
         return chance;
     }
 
-    public int CountHeroDuplicates(Hero hero)
+    public int CountHeroDuplicates(Hero targetHero)
     {
         int heroDuplicates = 0;
-        List<GameObject> heroes = owner.HeroesOnBoard.Concat(owner.HeroesOnBench).ToList();
-        foreach (GameObject piece in heroes)
+        foreach (Hero hero in State.AllHeroes)
         {
-            Hero pieceHero = piece.GetComponent<Hero>();
-            if (pieceHero.ID == hero.ID)
-                heroDuplicates += (int)Mathf.Pow(pieceHero.CombineThreshold, pieceHero.Upgrades);
+            if (hero.ID == targetHero.ID)
+                heroDuplicates += (int)Mathf.Pow(hero.CombineThreshold, hero.Upgrades);
         };
 
         return heroDuplicates;
@@ -226,10 +255,10 @@ public class Analytics
     private float CountHeroRaceFactor(Hero hero)
     {
         int heroes = 0;
-        if (owner.RaceHeroes.TryGetValue(hero.Race, out int amount))
+        if (State.RaceHeroes.TryGetValue(hero.Race, out int amount))
             heroes = amount;
 
-        if (owner.BenchRaces.TryGetValue(hero.Race, out amount))
+        if (State.BenchRaces.TryGetValue(hero.Race, out amount))
             heroes += amount;
 
         var key = IExtensions.GetAbilityParameters(hero.Race);
@@ -243,10 +272,10 @@ public class Analytics
     private float CountHeroClassFactor(Hero hero)
     {
         int heroes = 0;
-        if (owner.ClassHeroes.TryGetValue(hero.HeroClass, out int amount))
+        if (State.ClassHeroes.TryGetValue(hero.HeroClass, out int amount))
             heroes = amount;
 
-        if (owner.BenchClasses.TryGetValue(hero.HeroClass, out amount))
+        if (State.BenchClasses.TryGetValue(hero.HeroClass, out amount))
             heroes += amount;
 
         var key = IExtensions.GetAbilityParameters(hero.HeroClass);
@@ -282,5 +311,15 @@ public class Analytics
         Debug.Log($"[Analytics:{owner.Tag}] {hero.name} Прирост фактора дубликатов: {result:F2} (Следующий: {futureFactor:F2}, Текущий: {currentFactor:F2})");
 
         return result;
+    }
+
+    public void AddManagementAction(Action action)
+    {
+        ManagementActions.Enqueue(action);
+    }
+
+    public void AddTacticsAction(Action action)
+    {
+        TacticsActions.Enqueue(action);
     }
 }

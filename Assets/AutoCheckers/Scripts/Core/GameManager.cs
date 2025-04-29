@@ -11,19 +11,28 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager instance = null;
 
-    public readonly float attackTime = 1;
-    public readonly float damageTime = 1;
 
-    private GameObject heroHit;
-    private List<Hero> fightHeroes = new List<Hero>();
+    public readonly float attackTime = .5f;
+    public readonly float damageTime = .5f;
 
-    private Management management;
-    private Management managementH;
+    public readonly float pauseDelay = 30f;
+    private readonly float managementDelay = 1f;
+    private readonly float tacticDelay = 1f;
+    private readonly float reactionDelay = 2f;
 
     public Player Human { get; private set; } = new Player(GameTag.Human);
     public Player AI { get; private set; } = new Player(GameTag.AI);
     public int Round { get; private set; } = 1;
     public bool IsPlaying { get; private set; } = false;
+
+    private GameObject heroHit;
+    private List<Hero> fightHeroes = new List<Hero>();
+    private Analytics AIAnalytics;
+
+    private float actionTimer = 2f;
+    private float reactionTimer = 2f;
+    private bool humanChange = false;
+    private float pauseTimer = Mathf.Infinity;
 
     void Awake()
     {
@@ -32,7 +41,7 @@ public class GameManager : MonoBehaviour
         else if (instance == this)
             Destroy(this);
 
-        Time.timeScale = 2f;
+        //Time.timeScale = 2f;
     }
 
     void Start()
@@ -49,21 +58,78 @@ public class GameManager : MonoBehaviour
             AI.Bench[cell.GetComponent<BoardCell>().Row] = cell.GetComponent<BoardCell>();
         }
 
-        management = new Management(AI);
-        managementH = new Management(Human);
+        AIAnalytics = new Analytics(AI);
     }
 
     void Update()
     {
-        if (!IsPlaying && Input.GetMouseButtonDown(0))
+        if (!IsPlaying)
         {
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
+            if (Input.GetMouseButtonDown(0))
+            {
+                Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+                RaycastHit hit;
 
-            if (Physics.Raycast(ray, out hit))
-                HandleRaycastHit(hit);
+                if (Physics.Raycast(ray, out hit))
+                    HandleRaycastHit(hit);
+                else
+                    ClearSelection();
+            }
+
+            if (pauseTimer > 0)
+            {
+                pauseTimer -= Time.deltaTime;
+                UIManager.instance.UpdateTimer(pauseTimer);
+            }
             else
-                ClearSelection();
+            {
+                UIManager.instance.StartRound();
+            }
+
+            HandleAIActions();
+        }
+    }
+
+    private void HandleAIActions()
+    {
+        actionTimer -= Time.deltaTime;
+
+        if (AIAnalytics.ManagementActions.Count > 0 && actionTimer <= 0f)
+        {
+            var action = AIAnalytics.ManagementActions.Dequeue();
+            action.Invoke();
+            actionTimer = managementDelay;
+
+            if(AIAnalytics.ManagementActions.Count <= 0)
+            {
+                AIAnalytics.CreateTactics();
+            }
+
+            return;
+        }
+
+        if (humanChange)
+        {
+            reactionTimer = reactionDelay;
+            humanChange = false;
+            return;
+        }
+
+        if (reactionTimer > 0f)
+        {
+            reactionTimer -= Time.deltaTime;
+            if (reactionTimer <= 0f)
+            {
+                AIAnalytics.CreateTactics();
+            }
+            return;
+        }
+
+        if (AIAnalytics.TacticsActions.Count > 0 && actionTimer <= 0f)
+        {
+            var action = AIAnalytics.TacticsActions.Dequeue();
+            action.Invoke();
+            actionTimer = tacticDelay;
         }
     }
 
@@ -109,7 +175,10 @@ public class GameManager : MonoBehaviour
         if (heroHit != null && hitObject.GetComponent<BoardCell>().Row < 4)
         {
             if (!hitObject.GetComponent<BoardCell>().IsOccupied)
+            {
                 heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+                humanChange = true;
+            }
             else
                 SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
             ClearSelection();
@@ -121,7 +190,12 @@ public class GameManager : MonoBehaviour
         if (heroHit != null)
         {
             if (!hitObject.GetComponent<BoardCell>().IsOccupied)
+            {
                 heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
+
+                if (!heroHit.GetComponent<Hero>().CurrentCell.IsBench)
+                    humanChange = true;
+            }
             else
                 SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
             ClearSelection();
@@ -134,6 +208,9 @@ public class GameManager : MonoBehaviour
         {
             Hero switchHero = hitObject.GetComponent<Hero>();
             BoardCell switchCell = heroHit.GetComponent<Hero>().CurrentCell;
+
+            if (!(switchCell.IsBench && heroHit.GetComponent<Hero>().CurrentCell.IsBench))
+                humanChange = true;
 
             heroHit.GetComponent<Hero>().SetStartCell(switchHero.CurrentCell);
             switchHero.SetStartCell(switchCell);
@@ -148,6 +225,9 @@ public class GameManager : MonoBehaviour
         {
             heroHit.GetComponent<Hero>().Owner.HeroesOnBoard.Remove(heroHit);
             Shop.instance.SellHero(heroHit.GetComponent<Hero>(), Human);
+
+            humanChange = true;
+
             ClearSelection();
         }
     }
@@ -160,7 +240,8 @@ public class GameManager : MonoBehaviour
 
     public void BeginGame()
     {
-        management.PredictBattleOutcome();
+        AIAnalytics.StartThinking();
+        pauseTimer = pauseDelay;
     }
 
     private IEnumerator RoundTick()
@@ -282,8 +363,9 @@ public class GameManager : MonoBehaviour
 
         UpdateShops();
 
-        management.PredictBattleOutcome();
-        //managementH.PredictBattleOutcome();
+        pauseTimer = pauseDelay;
+        AIAnalytics.gotTactics = false;
+        AIAnalytics.StartThinking();
     }
 
     private GameTag DetermineRoundResult()

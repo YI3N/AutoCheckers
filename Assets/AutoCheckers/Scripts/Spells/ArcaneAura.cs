@@ -31,7 +31,7 @@ public class ArcaneAura : MonoBehaviour, ISpell
             List<Hero> heroes = Board.instance.GetHeroesInRange(hero.CurrentCell, range).Where(h => h.tag == hero.tag).ToList();
             foreach (Hero ally in heroes)
             {
-                ally.GainMana(manaRegeneration[hero.Upgrades]);
+                ally.GainMana(manaRegeneration[hero.Upgrades] * 5);
             }
 
             StartCoroutine(Cooldown());
