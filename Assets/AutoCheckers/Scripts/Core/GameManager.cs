@@ -6,6 +6,7 @@ using AutoCheckers;
 using TMPro;
 using System.ComponentModel;
 using System;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -104,15 +105,12 @@ public class GameManager : MonoBehaviour
             {
                 AIAnalytics.CreateTactics();
             }
-
-            return;
         }
 
         if (humanChange)
         {
             reactionTimer = reactionDelay;
             humanChange = false;
-            return;
         }
 
         if (reactionTimer > 0f)
@@ -281,6 +279,28 @@ public class GameManager : MonoBehaviour
             player.HeroesOnBoard.Remove(piece);
             player.HeroesOnBench.Add(piece);
         }
+
+        player.ClassHeroes.Clear();
+        player.RaceHeroes.Clear();
+        player.BenchClasses.Clear();
+        player.BenchRaces.Clear();
+
+        foreach (GameObject piece in player.HeroesOnBoard.GroupBy(go => go.GetComponent<Hero>().ID).Select(g => g.First()).ToList())
+        {
+            Hero hero = piece.GetComponent<Hero>();
+            player.ClassHeroes.AddValue(hero.HeroClass, 1);
+            player.RaceHeroes.AddValue(hero.Race, 1);
+        }
+
+        foreach (GameObject piece in player.HeroesOnBench.GroupBy(go => go.GetComponent<Hero>().ID).Select(g => g.First()).ToList())
+        {
+            Hero hero = piece.GetComponent<Hero>();
+            if (!player.IsHeroOnBoard(piece))
+            {
+                player.BenchClasses.AddValue(hero.HeroClass, 1);
+                player.BenchRaces.AddValue(hero.Race, 1);
+            }
+        }
     }
 
     private void PrepairBoard(Player player)
@@ -322,6 +342,9 @@ public class GameManager : MonoBehaviour
     {
         IsPlaying = true;
 
+        Human.ResetStatistics();
+        AI.ResetStatistics();
+
         PrepairBoard(Human);
         PrepairBoard(AI);
 
@@ -355,7 +378,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        UpdateWinStreak();
+        GiveStreaksBonus();
         GiveExperience();
 
         Round++;
@@ -421,13 +444,19 @@ public class GameManager : MonoBehaviour
         AI.CalculateStatistic(GameTag.Draw);
     }
 
-    private void UpdateWinStreak()
+    private void GiveStreaksBonus()
     {
         int humanWinStreakBonus = Mathf.Clamp(Human.WinStreak / 3, 0, 3);
         int aiWinStreakBonus = Mathf.Clamp(AI.WinStreak / 3, 0, 3);
 
+        int humanLooseStreakBonus = Mathf.Clamp(Human.LooseStreak / 3, 0, 3);
+        int aiLooseStreakBonus = Mathf.Clamp(AI.LooseStreak / 3, 0, 3);
+
         Human.GainMoney(humanWinStreakBonus);
         AI.GainMoney(aiWinStreakBonus);
+
+        Human.GainMoney(humanLooseStreakBonus);
+        AI.GainMoney(aiLooseStreakBonus);
     }
 
     private void GiveExperience()

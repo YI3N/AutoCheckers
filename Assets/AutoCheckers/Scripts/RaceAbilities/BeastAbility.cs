@@ -5,8 +5,8 @@ using UnityEngine;
 
 public class BeastAbility : MonoBehaviour, IAbility
 {
-    public static readonly int maxLvl = 3;
-    public static readonly int lvlThreshold = 3;
+    public static readonly int maxLvl = 2;
+    public static readonly int lvlThreshold = 2;
     private readonly List<float> damage = new List<float>() { 0, 0.15f };
 
     private static bool abilityActive = false;

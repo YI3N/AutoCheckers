@@ -7,6 +7,7 @@ using AutoCheckers;
 using System.Linq;
 using System;
 using UnityEngine.Analytics;
+using static UnityEngine.GraphicsBuffer;
 
 public class Player
 {
@@ -32,6 +33,7 @@ public class Player
     }
     public int Money { get; private set; } = 5;
     public int WinStreak { get; private set; } = 0;
+    public int LooseStreak { get; private set; } = 0;
     public int Wins { get; private set; } = 0;
     public int Losses { get; private set; } = 0;
     public int AttackStatistics { get; private set; } = 0;
@@ -40,6 +42,12 @@ public class Player
     public Player(GameTag tag)
     {
         this.Tag = tag;
+    }
+
+    public void ResetStatistics()
+    {
+        AttackStatistics = 0;
+        DefenceStatistics = 0;
     }
 
     public void ActivateAbilities()
@@ -82,8 +90,8 @@ public class Player
 
         if (!isDuplicate)
         {
-            ClassHeroes[hero.GetComponent<Hero>().HeroClass] += 1;
-            RaceHeroes[hero.GetComponent<Hero>().Race] += 1;
+            ClassHeroes.AddValue(hero.GetComponent<Hero>().HeroClass, 1);
+            RaceHeroes.AddValue(hero.GetComponent<Hero>().Race, 1);
 
             UIManager.instance.UpdatePlayerUI(this);
         }
@@ -94,8 +102,8 @@ public class Player
         isDuplicate = IsHeroOnBoard(hero) || IsHeroOnBench(hero);
         if (!isDuplicate)
         {
-            BenchClasses[hero.GetComponent<Hero>().HeroClass] -= 1;
-            BenchRaces[hero.GetComponent<Hero>().Race] -= 1;
+            BenchClasses.AddValue(hero.GetComponent<Hero>().HeroClass, -1);
+            BenchRaces.AddValue(hero.GetComponent<Hero>().Race, -1);
         }
     }
 
@@ -116,8 +124,8 @@ public class Player
 
         if (!isDuplicate)
         {
-            ClassHeroes[hero.GetComponent<Hero>().HeroClass] -= 1;
-            RaceHeroes[hero.GetComponent<Hero>().Race] -= 1;
+            ClassHeroes.AddValue(hero.GetComponent<Hero>().HeroClass, -1);
+            RaceHeroes.AddValue(hero.GetComponent<Hero>().Race, -1);
 
             UIManager.instance.UpdatePlayerUI(this);
         }
@@ -132,8 +140,8 @@ public class Player
 
             if (!isDuplicate)
             {
-                ClassHeroes[hero.HeroClass] -= 1;
-                RaceHeroes[hero.Race] -= 1;
+                ClassHeroes.AddValue(hero.HeroClass, -1);
+                RaceHeroes.AddValue(hero.Race, -1);
             }
         }
         else
@@ -142,8 +150,8 @@ public class Player
 
             if (!isDuplicate)
             {
-                BenchClasses[hero.HeroClass] -= 1;
-                BenchRaces[hero.Race] -= 1;
+                BenchClasses.AddValue(hero.HeroClass, -1);
+                BenchRaces.AddValue(hero.Race, -1);
             }
         }
     }
@@ -206,15 +214,18 @@ public class Player
         if (roundResult == GameTag.Draw)
         {
             WinStreak = 0;
+            LooseStreak = 0;
         }
         else if (roundResult == Tag)
         {
             Wins++;
             WinStreak++;
+            LooseStreak = 0;
         }
         else
         {
             Losses++;
+            LooseStreak++;
             WinStreak = 0;
         }
 

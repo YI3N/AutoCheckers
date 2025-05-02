@@ -95,7 +95,7 @@ public class Analytics
         foreach (Hero hero in heroes)
             if (!HeroBattlePriorities.ContainsKey(hero.name))
             {
-                float utility = (owner.AttackStatistics == 0 || owner.DefenceStatistics == 0) ? 1 : hero.AttackStatistics / (float)owner.AttackStatistics + hero.DefenceStatistics / (float)owner.DefenceStatistics;
+                float utility = (owner.AttackStatistics == 0 || owner.DefenceStatistics == 0 || hero.AttackStatistics + hero.DefenceStatistics == 0) ? (2f / (float)owner.Level) : hero.AttackStatistics / (float)owner.AttackStatistics + hero.DefenceStatistics / (float)owner.DefenceStatistics;
                 float value = hero.Level * utility;
                 HeroBattlePriorities.Add(hero.name, value);
 
