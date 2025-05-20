@@ -76,7 +76,9 @@ public class Shop : MonoBehaviour
             instance = this;
         else if (instance == this)
             Destroy(this);
-
+    }
+    void Start()
+    {
         foreach (GameObject cardGO in allCards)
         {
             HeroCard card = cardGO.GetComponent<HeroCard>();
@@ -112,10 +114,6 @@ public class Shop : MonoBehaviour
         GenerateShop(GameTag.AI);
         UpdateChances(GameManager.instance.Human);
         UpdateChances(GameManager.instance.AI);
-    }
-    void Start()
-    {
-
     }
 
     public void UpdateChances(Player player)

@@ -1,13 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using AutoCheckers;
-using TMPro;
-using System.ComponentModel;
-using System;
 using System.Linq;
-using UnityEditor.SearchService;
 using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
@@ -58,6 +53,9 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
+        if (Input.GetKey(KeyCode.Escape))
+            Application.Quit();
+
         if (!IsPlaying)
         {
             if (Input.GetMouseButtonDown(0))
