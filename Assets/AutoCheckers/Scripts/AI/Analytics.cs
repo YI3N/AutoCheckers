@@ -31,12 +31,19 @@ public class Analytics
     public Queue<Action> ManagementActions { get; private set; } = new Queue<Action>();
     public Queue<Action> TacticsActions { get; private set; } = new Queue<Action>();
 
+    public Tactics Tactics { get; private set; }
+    private Management management;
+
     private Player owner;
     private Player opponent;
 
-    private Management management;
-    public Tactics Tactics { get; private set; }
-    public bool gotTactics = false;
+    //settings
+    private readonly float managementDelay = 1f;
+    private readonly float tacticDelay = .75f;
+    private readonly float reactionDelay = 3f;
+
+    private float actionTimer = 2f;
+    private float reactionTimer = 3f;
 
     public Analytics(Player player)
     {
@@ -48,6 +55,51 @@ public class Analytics
         opponent = State.Opponent;
     }
 
+    public void HandleActions()
+    {
+        actionTimer -= Time.deltaTime;
+
+        if (ManagementActions.Count > 0 && actionTimer <= 0f)
+        {
+            var action = ManagementActions.Dequeue();
+            action.Invoke();
+            actionTimer = managementDelay;
+
+            if (ManagementActions.Count <= 0)
+            {
+                CreateTactics();
+            }
+        }
+
+        if (ManagementActions.Count <= 0)
+        {
+            Tactics.SetDangerBoard();
+        }
+
+        if (Tactics.OpponentChanged)
+        {
+            reactionTimer = reactionDelay;
+            Tactics.ReactToChanges();
+        }
+
+        if (reactionTimer > 0f)
+        {
+            reactionTimer -= Time.deltaTime;
+            if (reactionTimer <= 0f)
+            {
+                CreateTactics();
+            }
+            return;
+        }
+
+        if (TacticsActions.Count > 0 && actionTimer <= 0f)
+        {
+            var action = TacticsActions.Dequeue();
+            action.Invoke();
+            actionTimer = tacticDelay;
+        }
+    }
+
     public void StartThinking()
     {
         ManagementActions.Clear();
@@ -57,7 +109,6 @@ public class Analytics
 
     public void CreateTactics()
     {
-        gotTactics = true;
         TacticsActions.Clear();
         SetBattlePriorities();
         Tactics.CreateTactic(HeroBattlePriorities);
@@ -177,7 +228,6 @@ public class Analytics
         return result;
     }
 
-    //Внедрить упрощенный подсчет спавна
     private float CountHeroSpawnChance(Hero hero)
     {
         float rarityChance = Shop.instance.GetCurrentRaritySpawnChance(owner.Level, hero.Rarity);
@@ -264,7 +314,11 @@ public class Analytics
         var key = IExtensions.GetAbilityParameters(hero.Race);
 
         if (abilityFactors.TryGetValue(key, out var factors))
+        {
+            if (heroes > factors.Length - 1)
+                heroes = factors.Length - 1;
             return factors[heroes];
+        }   
         else
             throw new ArgumentException("Unsupported ability");
     }
@@ -281,7 +335,11 @@ public class Analytics
         var key = IExtensions.GetAbilityParameters(hero.HeroClass);
 
         if (abilityFactors.TryGetValue(key, out var factors))
+        {
+            if (heroes > factors.Length - 1)
+                heroes = factors.Length - 1;
             return factors[heroes];
+        }
         else
             throw new ArgumentException("Unsupported ability");
     }

@@ -17,6 +17,13 @@ public class Tactics
     private List<Hero> battleHeroes = new List<Hero>();
     private List<Hero> benchHeroes = new List<Hero>();
 
+    public bool OpponentChanged { get; private set; } = false;
+
+    public void ReactToChanges()
+    {
+        OpponentChanged = false;
+    }
+
     public Tactics(Analytics analytics)
     {
         this.analytics = analytics;
@@ -33,18 +40,22 @@ public class Tactics
         SetBattleOrder(battlePriority);
     }
 
-    private void SetDangerBoard()
+    public void SetDangerBoard()
     {
+        int[,] previousBoard = dangerBoard.Clone() as int[,];
         Array.Clear(dangerBoard, 0, dangerBoard.Length);
 
         foreach (GameObject piece in opponent.HeroesOnBoard)
         {
             Hero enemy = piece.GetComponent<Hero>();
-            dangerBoard[enemy.StartCell.Row, enemy.StartCell.Col] = 1;
+            dangerBoard[owner.Tag == GameTag.Human ? 3 : 4, enemy.StartCell.Col] += 1;
         }
 
         if (IsDangerBoardEmpty())
-            dangerBoard[3, owner.Tag == GameTag.Human ? 3 : 4] = 1;
+            dangerBoard[owner.Tag == GameTag.Human ? 3 : 4, 4] = 1;
+
+        if (!IExtensions.AreEqual2DArrays(previousBoard, dangerBoard))
+            OpponentChanged = true;
     }
 
     private bool IsDangerBoardEmpty()
@@ -89,6 +100,20 @@ public class Tactics
             .OrderByDescending(h => battlePriority[h.name])
             .Take(owner.Level)
             .ToList();
+
+        int missingCount = owner.Level - battleHeroes.Count;
+        if (missingCount > 0)
+        {
+            var candidates = heroes
+                .Where(go =>
+                    go.TryGetComponent<Hero>(out Hero h) &&
+                    !battleHeroes.Any(b => b.gameObject == go))
+                .OrderByDescending(go => go.GetComponent<Hero>().Level)
+                .Take(missingCount)
+                .Select(go => go.GetComponent<Hero>());
+
+            battleHeroes.AddRange(candidates);
+        }
 
         foreach (GameObject piece in heroes)
         {
@@ -187,7 +212,7 @@ public class Tactics
     private void SetRangedPosition(Hero hero, Vector2 target, Vector2 neighbor)
     {
         target = new Vector2(owner.Tag == GameTag.Human ? 4 : 3, target.y);
-        List<Vector2> freeCells = GetFreeCellsForRanged()
+        List<Vector2> freeCells = GetFreeCellsForRanged(hero.AttackRange)
             .Where(cell => Mathf.FloorToInt(Vector2.Distance(cell, target)) <= hero.AttackRange)
             .ToList();
 
@@ -245,10 +270,10 @@ public class Tactics
         return cells;
     }
 
-    private List<Vector2> GetFreeCellsForRanged()
+    private List<Vector2> GetFreeCellsForRanged(int range)
     {
-        int lastRow = owner.Tag == GameTag.Human ? 0 : 5;
-        int endRow = owner.Tag == GameTag.Human ? 2 : 7;
+        int lastRow = owner.Tag == GameTag.Human ? 0 : 6;
+        int endRow = owner.Tag == GameTag.Human ? (4-range < 0 ? 0 : 4-range) : (3+range > 7 ? 7 : 3+range);
         List<Vector2> cells = new();
 
         for (int row = lastRow; row <= endRow; row++)

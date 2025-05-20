@@ -7,19 +7,17 @@ using TMPro;
 using System.ComponentModel;
 using System;
 using System.Linq;
+using UnityEditor.SearchService;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager instance = null;
 
-
     public readonly float attackTime = .5f;
     public readonly float damageTime = .5f;
 
     public readonly float pauseDelay = 30f;
-    private readonly float managementDelay = 1f;
-    private readonly float tacticDelay = 1f;
-    private readonly float reactionDelay = 2f;
 
     public Player Human { get; private set; } = new Player(GameTag.Human);
     public Player AI { get; private set; } = new Player(GameTag.AI);
@@ -28,11 +26,11 @@ public class GameManager : MonoBehaviour
 
     private GameObject heroHit;
     private List<Hero> fightHeroes = new List<Hero>();
-    private Analytics AIAnalytics;
 
-    private float actionTimer = 2f;
-    private float reactionTimer = 2f;
-    private bool humanChange = false;
+    private Analytics AIAnalytics;
+    private Analytics HumanAnalytics;
+
+    private bool player1AI = false;
     private float pauseTimer = Mathf.Infinity;
 
     void Awake()
@@ -41,8 +39,6 @@ public class GameManager : MonoBehaviour
             instance = this;
         else if (instance == this)
             Destroy(this);
-
-        //Time.timeScale = 2f;
     }
 
     void Start()
@@ -58,8 +54,6 @@ public class GameManager : MonoBehaviour
         {
             AI.Bench[cell.GetComponent<BoardCell>().Row] = cell.GetComponent<BoardCell>();
         }
-
-        AIAnalytics = new Analytics(AI);
     }
 
     void Update()
@@ -87,49 +81,13 @@ public class GameManager : MonoBehaviour
                 UIManager.instance.StartRound();
             }
 
-            HandleAIActions();
+            if (AIAnalytics != null)
+                AIAnalytics.HandleActions();
+            if (player1AI)
+                HumanAnalytics.HandleActions();
         }
     }
 
-    private void HandleAIActions()
-    {
-        actionTimer -= Time.deltaTime;
-
-        if (AIAnalytics.ManagementActions.Count > 0 && actionTimer <= 0f)
-        {
-            var action = AIAnalytics.ManagementActions.Dequeue();
-            action.Invoke();
-            actionTimer = managementDelay;
-
-            if(AIAnalytics.ManagementActions.Count <= 0)
-            {
-                AIAnalytics.CreateTactics();
-            }
-        }
-
-        if (humanChange)
-        {
-            reactionTimer = reactionDelay;
-            humanChange = false;
-        }
-
-        if (reactionTimer > 0f)
-        {
-            reactionTimer -= Time.deltaTime;
-            if (reactionTimer <= 0f)
-            {
-                AIAnalytics.CreateTactics();
-            }
-            return;
-        }
-
-        if (AIAnalytics.TacticsActions.Count > 0 && actionTimer <= 0f)
-        {
-            var action = AIAnalytics.TacticsActions.Dequeue();
-            action.Invoke();
-            actionTimer = tacticDelay;
-        }
-    }
 
     private void HandleRaycastHit(RaycastHit hit)
     {
@@ -175,7 +133,6 @@ public class GameManager : MonoBehaviour
             if (!hitObject.GetComponent<BoardCell>().IsOccupied)
             {
                 heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
-                humanChange = true;
             }
             else
                 SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
@@ -190,9 +147,6 @@ public class GameManager : MonoBehaviour
             if (!hitObject.GetComponent<BoardCell>().IsOccupied)
             {
                 heroHit.GetComponent<Hero>().SetStartCell(hitObject.GetComponent<BoardCell>());
-
-                if (!heroHit.GetComponent<Hero>().CurrentCell.IsBench)
-                    humanChange = true;
             }
             else
                 SwapHeroes(hitObject.GetComponent<BoardCell>().OccupiedHero.gameObject);
@@ -206,9 +160,6 @@ public class GameManager : MonoBehaviour
         {
             Hero switchHero = hitObject.GetComponent<Hero>();
             BoardCell switchCell = heroHit.GetComponent<Hero>().CurrentCell;
-
-            if (!(switchCell.IsBench && heroHit.GetComponent<Hero>().CurrentCell.IsBench))
-                humanChange = true;
 
             heroHit.GetComponent<Hero>().SetStartCell(switchHero.CurrentCell);
             switchHero.SetStartCell(switchCell);
@@ -224,8 +175,6 @@ public class GameManager : MonoBehaviour
             heroHit.GetComponent<Hero>().Owner.HeroesOnBoard.Remove(heroHit);
             Shop.instance.SellHero(heroHit.GetComponent<Hero>(), Human);
 
-            humanChange = true;
-
             ClearSelection();
         }
     }
@@ -236,10 +185,31 @@ public class GameManager : MonoBehaviour
         UIManager.instance.HideSellPrice();
     }
 
-    public void BeginGame()
+    public void BeginGame(string player1, string player2)
     {
+        if (player1 == "Человек")
+        {
+            player1AI = false;
+        }
+        else if (player1 == "ИИ")
+        {
+            Time.timeScale = 4f;
+            HumanAnalytics = new Analytics(Human);
+            player1AI = true;
+        }
+
+        if (player2 == "ИИ")
+            AIAnalytics = new Analytics(AI);
+
         AIAnalytics.StartThinking();
+        if (player1AI)
+            HumanAnalytics.StartThinking();
         pauseTimer = pauseDelay;
+    }
+
+    public void EndGame()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private IEnumerator RoundTick()
@@ -387,8 +357,9 @@ public class GameManager : MonoBehaviour
         UpdateShops();
 
         pauseTimer = pauseDelay;
-        AIAnalytics.gotTactics = false;
         AIAnalytics.StartThinking();
+        if (player1AI)
+            HumanAnalytics.StartThinking();
     }
 
     private GameTag DetermineRoundResult()

@@ -101,4 +101,9 @@ public class PlayerPanel : MonoBehaviour
 
         }
     }
+
+    public string GetPlayerName()
+    {
+        return playerName.text;
+    }
 }

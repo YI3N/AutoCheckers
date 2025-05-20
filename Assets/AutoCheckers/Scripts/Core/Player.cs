@@ -257,7 +257,8 @@ public class Player
         CurrentHealth -= damage;
         if (CurrentHealth <= 0)
         {
-            //Show Results
+            UIManager.instance.ShowResult(Tag);
+            Time.timeScale = 0f;
         }
         UIManager.instance.UpdatePlayerUI(this);
     }

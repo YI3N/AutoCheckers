@@ -107,5 +107,22 @@ namespace AutoCheckers
             else
                 throw new ArgumentException("Unsupported ability type: " + ability);
         }
+
+        public static bool AreEqual2DArrays<T>(T[,] a, T[,] b)
+        {
+            if (a.GetLength(0) != b.GetLength(0) || a.GetLength(1) != b.GetLength(1))
+                return false;
+
+            for (int i = 0; i < a.GetLength(0); i++)
+            {
+                for (int j = 0; j < a.GetLength(1); j++)
+                {
+                    if (!EqualityComparer<T>.Default.Equals(a[i, j], b[i, j]))
+                        return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

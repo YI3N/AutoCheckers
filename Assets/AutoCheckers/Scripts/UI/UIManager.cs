@@ -8,6 +8,7 @@ using UnityEngine.UI;
 using AutoCheckers;
 using System.Linq;
 using System;
+using System.Reflection;
 
 public class UIManager : MonoBehaviour
 {
@@ -16,11 +17,23 @@ public class UIManager : MonoBehaviour
     [SerializeField]
     private GameObject menuUI;
     [SerializeField]
+    private GameObject resultsUI;
+    [SerializeField]
     private GameObject pauseUI;
     [SerializeField]
     private GameObject playersUI;
     [SerializeField]
     private GameObject shopUI;
+
+    [SerializeField]
+    private TMP_Dropdown player1;
+    [SerializeField]
+    private TMP_Dropdown player2;
+
+    [SerializeField]
+    private Button menuButton;
+    [SerializeField]
+    private TMP_Text result;
 
     [SerializeField]
     private GameObject sellPlane;
@@ -74,6 +87,7 @@ public class UIManager : MonoBehaviour
         playersUI.SetActive(true);
         shopUI.SetActive(true);
         statisticsPanel.SetActive(true);
+        resultsUI.SetActive(true);
 
         playButton.onClick.AddListener(BeginGame);
         //startButton.onClick.AddListener(StartRound);
@@ -82,11 +96,13 @@ public class UIManager : MonoBehaviour
         shopCloseButton.onClick.AddListener(CloseShop);
         shopRerollButton.onClick.AddListener(Shop.instance.TryToRerollHumanShop);
         shopEXPButton.onClick.AddListener(Shop.instance.TryToBuyEXPHumanShop);
+        menuButton.onClick.AddListener(GameManager.instance.EndGame);
 
         pauseUI.SetActive(false);
         playersUI.SetActive(false);
         shopUI.SetActive(false);
         statisticsPanel.SetActive(false);
+        resultsUI.SetActive(false);
     }
 
     public void UpdateTimer(float time)
@@ -117,11 +133,37 @@ public class UIManager : MonoBehaviour
         UpdatePlayerUI(GameManager.instance.Human);
         UpdatePlayerUI(GameManager.instance.AI);
 
-        humanPanel.SetPlayerName("Игрок");
-        aiPanel.SetPlayerName("ИИ");
+        int index1 = player1.value;
+        int index2 = player2.value;
+
+        string name1 = player1.options[index1].text;
+        string name2 = player2.options[index2].text;
+
+        if (name1 == name2)
+        {
+            name1 += " 1";
+            name2 += " 2";
+        }
+
+        humanPanel.SetPlayerName(name1);
+        aiPanel.SetPlayerName(name2);
 
         OpenShop();
-        GameManager.instance.BeginGame();
+        GameManager.instance.BeginGame(player1.options[index1].text, player2.options[index2].text);
+    }
+
+    public void ShowResult(GameTag looser)
+    {
+        if (looser == GameTag.Human)
+            result.text = aiPanel.GetPlayerName() + " победил!";
+        else
+            result.text = humanPanel.GetPlayerName() + " победил!";
+
+        playersUI.SetActive(false);
+        shopUI.SetActive(false);
+        pauseUI.SetActive(false);
+
+        resultsUI.SetActive(true);
     }
 
     public void StartRound()
